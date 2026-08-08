@@ -124,7 +124,7 @@ E-commerce (Amazon, Walmart, eBay, Home Depot, Zara, Etsy, Best Buy, Google Shop
 
 ## Architecture note for our backend
 
-Our backend won't be an MCP client in the Claude Desktop sense — it's a FastAPI service. Two integration paths:
+Our backend won't be an MCP client in the Claude Desktop sense — it's an Express service. Two integration paths:
 
 1. **Direct REST calls** to Bright Data's underlying Web Unlocker / SERP / Datasets APIs (same capabilities as the MCP tools, called as plain HTTP from our extraction functions) — simplest, most predictable for a hackathon backend.
 2. **Run the MCP server as a subprocess/service and speak MCP protocol to it** from our backend, treating it exactly like a tool-calling target for AIML API's function-calling — more "AI-native" and a stronger technical story for judges (the LLM is literally the one deciding which Bright Data tool to call and with what args), at the cost of an extra moving part.

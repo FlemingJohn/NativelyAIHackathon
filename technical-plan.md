@@ -7,16 +7,16 @@ Concrete build plan, now that [ideas.md](./ideas.md) has the product brainstorm 
 | Layer | Choice | Why |
 |---|---|---|
 | Frontend | Next.js 14 (App Router) + TypeScript + Tailwind + shadcn/ui | Fast to build a polished, demo-ready UI; App Router gives simple server actions for calling our own API |
-| Backend | FastAPI (Python 3.12) | Best fit for calling both AIML API (OpenAI-compatible client) and Bright Data REST endpoints; async-native for parallel scrape calls |
-| DB | SQLite via SQLAlchemy for local dev | Zero setup for a hackathon; deliberately staying on SQLite for now (DB choice/signup deferred), models written so swapping to Postgres later is a connection-string change, not a rewrite |
+| Backend | Express 5 + TypeScript (Node 20+) | One language across the stack — the frontend's API types and the backend's response shapes stay in sync by hand-off, not translation; async-native for parallel scrape calls |
+| DB | Postgres on Supabase via Drizzle ORM | Managed Postgres with zero server setup, and a real DB from day one (no SQLite → Postgres migration later). Schema lives in `backend/src/db/schema.ts`; `drizzle-kit` generates the SQL in `backend/drizzle/` |
 | LLM access | AIML API, OpenAI-compatible client, `base_url=https://api.aimlapi.com/v1` | One key, pick different models per task by name |
-| Web data | **Currently:** free, no-signup sources (DuckDuckGo HTML search, plain page fetch) via `web_client.py`. **Later:** Bright Data direct REST calls, functions named 1:1 with the MCP tool names | Bright Data is on hold behind a payment-verification step on the account — see [bright-data.md](./bright-data.md). `web_client.py` is a facade so swapping back is a one-line import change, not a rewrite of the routers. |
+| Web data | **Currently:** free, no-signup sources (DuckDuckGo HTML search, plain page fetch) via `webClient.ts`. **Later:** Bright Data direct REST calls, functions named 1:1 with the MCP tool names | Bright Data is on hold behind a payment-verification step on the account — see [bright-data.md](./bright-data.md). `webClient.ts` is a facade so swapping back is a one-line import change, not a rewrite of the routes. |
 
 AIML API usage pattern — OpenAI-compatible client:
-```python
-from openai import OpenAI
-client = OpenAI(base_url="https://api.aimlapi.com/v1", api_key=AIML_API_KEY)
-client.chat.completions.create(model="<model-name>", messages=[...])
+```ts
+import OpenAI from "openai";
+const client = new OpenAI({ baseURL: "https://api.aimlapi.com/v1", apiKey: AIML_API_KEY });
+await client.chat.completions.create({ model: "<model-name>", messages: [...] });
 ```
 We'll pick a **fast/cheap model** for structured extraction passes and a **stronger reasoning model** for synthesis passes (idea generation, market sizing, ranking) — exact model names to be decided once we see what's available on the account (AIML API exposes 200+ models under one key).
 
@@ -31,26 +31,36 @@ We'll pick a **fast/cheap model** for structured extraction passes and a **stron
     /investor               Investor Search flow
     /profile                 Startup Profile view (shared sidebar/state)
   /components
-  /lib/api.ts             thin client for calling our FastAPI backend
+  /lib/api.ts             thin client for calling our Express backend
 
-/backend                  FastAPI app
-  /app
-    main.py                app entrypoint, router registration
-    /routers
-      profile.py            /profile CRUD
-      idea.py                /idea/generate
-      market.py               /market/research
-      cofounder.py              /cofounder/search
-      investor.py                /investor/search
+/backend                  Express + TypeScript app
+  /src
+    index.ts               server entrypoint (listen + graceful shutdown)
+    app.ts                  express app, CORS, router registration
+    config.ts                env vars
+    schemas.ts                zod request validation
+    serialize.ts               row -> response body (pins the JSON shape the frontend expects)
+    /routes
+      profile.ts              /profile CRUD
+      idea.ts                  /idea/generate
+      market.ts                 /market/research
+      cofounder.ts                /cofounder/search
+      investor.ts                  /investor/search
     /services
-      aiml_client.py          AIML API wrapper (chat + embeddings)
-      web_client.py            facade routers actually import -- currently points at free_data_client
-      free_data_client.py       DuckDuckGo search + plain page fetch (no signup, in use now)
-      brightdata_client.py      Bright Data REST wrapper (on hold, swap web_client's import to this later)
-      pipeline.py                shared "extract then reason" two-pass helper
-    /models                   SQLAlchemy models (StartupProfile, IdeaCard, MarketReport, CofounderMatch, InvestorLead)
-    /db.py                    SQLAlchemy session/engine setup
-  requirements.txt
+      aimlClient.ts           AIML API wrapper (chat)
+      webClient.ts             facade routes actually import -- currently points at freeDataClient
+      freeDataClient.ts         DuckDuckGo search + plain page fetch (no signup, in use now)
+      brightdataClient.ts       Bright Data REST wrapper (on hold, swap webClient's import to this later)
+      pipeline.ts                shared cached "extract then reason" two-pass helper
+      profiles.ts                 shared profile lookup/update helpers
+    /db
+      schema.ts               Drizzle tables (startup_profiles, idea_cards, market_reports, cofounder_matches, investor_leads, scrape_cache)
+      index.ts                 postgres-js connection + drizzle instance
+    /http/errors.ts        HttpError + error middleware
+  /drizzle                 generated SQL migrations
+  drizzle.config.ts
+  package.json
+  tsconfig.json
   .env.example
 
 ideas.md
@@ -58,7 +68,7 @@ bright-data.md
 technical-plan.md
 ```
 
-## 3. Data model (DB schema, SQLAlchemy)
+## 3. Data model (DB schema, Drizzle / Postgres)
 
 Mirrors the shared Startup Profile from `ideas.md`, normalized into tables:
 
@@ -68,6 +78,8 @@ Mirrors the shared Startup Profile from `ideas.md`, normalized into tables:
 - **CofounderMatch**: id, profile_id (FK), name, headline, profile_url, match_rationale, skill_tags (JSON)
 - **InvestorLead**: id, profile_id (FK), firm, person, thesis_summary, portfolio_highlights (JSON), outreach_angle, source_url
 - **ScrapeCache**: id, cache_key (url+query hash), tool_name, raw_response (JSON), fetched_at — avoids burning Bright Data credits on repeat calls during dev/demo
+
+Ids are Postgres `uuid` (`gen_random_uuid()`), JSON columns are `jsonb`, timestamps are `timestamptz` defaulted by the database. Child tables cascade-delete with their profile.
 
 ## 4. API contracts (backend)
 
@@ -98,8 +110,8 @@ Every generate/research/search endpoint follows the same two-pass internal pipel
 
 ## 5. Build order
 
-1. Backend skeleton: FastAPI app, DB models/migrations, `/profile` CRUD, health check. Confirms the spine works before any AI/scraping calls.
-2. `aiml_client.py` + `brightdata_client.py` service wrappers with the smallest possible working call each (one chat completion, one `search_engine` call) — prove both third-party integrations work end-to-end before building module logic on top.
+1. Backend skeleton: Express app, DB schema/migrations, `/profile` CRUD, health check. Confirms the spine works before any AI/scraping calls.
+2. `aimlClient.ts` + `brightdataClient.ts` service wrappers with the smallest possible working call each (one chat completion, one `searchEngine` call) — prove both third-party integrations work end-to-end before building module logic on top.
 3. Market Research module (highest demo value, lowest data-availability risk — see `ideas.md` §5).
 4. Idea Brainstorming module (reuses the gather→extract→synthesize pipeline from #3).
 5. Frontend: profile sidebar + Market Research + Idea flows wired to the backend.
@@ -114,7 +126,10 @@ Every generate/research/search endpoint follows the same two-pass internal pipel
 AIML_API_KEY=
 BRIGHTDATA_API_TOKEN=
 BRIGHTDATA_WEB_UNLOCKER_ZONE=mcp_unlocker
-DATABASE_URL=sqlite:///./app.db
+# Supabase -> Project Settings -> Database -> Connection string (Transaction pooler, port 6543)
+DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+PORT=8000
+CORS_ORIGIN=http://localhost:3000
 ```
 
 `frontend/.env.local`:
@@ -127,9 +142,10 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 # backend
 cd backend
-python -m venv .venv && .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+npm install
+cp .env.example .env      # fill in AIML_API_KEY + DATABASE_URL
+npm run db:migrate        # creates the tables in Supabase
+npm run dev               # http://localhost:8000
 
 # frontend
 cd frontend

@@ -70,7 +70,7 @@ Frontend (Next.js + Tailwind)
   - Single dashboard: 4 module cards + persistent Startup Profile sidebar
   - Each module = guided flow, not a blank chat box (more demo-reliable than a free-form agent)
 
-Backend (FastAPI, Python — best fit for both AIML API + Bright Data SDKs)
+Backend (Express + TypeScript — one language across the stack, and both AIML API and Bright Data are plain HTTP)
   - /profile        CRUD on StartupProfile (Postgres/Supabase)
   - /idea/generate   -> Bright Data signal pull -> AIML API synth -> idea cards
   - /market/research -> Bright Data scrape -> AIML API extract+synth -> market report
