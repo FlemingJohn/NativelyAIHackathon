@@ -50,6 +50,21 @@ export async function cachedFetch<T>({
   return payload;
 }
 
+/** Models are asked for bare JSON but sometimes wrap it in ```json fences
+ * anyway -- strip those before parsing rather than losing the whole response
+ * to a parse error. */
+export function parseJson<T>(text: string, fallback: T): T {
+  const cleaned = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 /** Cheap-model pass: raw scraped text -> structured JSON facts. */
 export async function extractFacts(
   rawContext: string,
@@ -65,11 +80,10 @@ export async function extractFacts(
     ],
     { reasoning: false },
   );
-  try {
-    return JSON.parse(content);
-  } catch {
-    return { raw: content };
-  }
+  // The fast model wraps its JSON in ```json fences often enough that parsing
+  // the bare string throws away most extractions -- the synthesis pass then
+  // reasons over `{raw: "```json..."}` instead of real facts.
+  return parseJson<unknown>(content, { raw: content });
 }
 
 /** Reasoning-model pass: structured facts + profile context -> final output. */
@@ -81,16 +95,4 @@ export function synthesize(systemPrompt: string, userPrompt: string): Promise<st
     ],
     { reasoning: true },
   );
-}
-
-/** The synthesis prompts all ask for bare JSON, but models sometimes wrap it in
- * ```json fences anyway -- strip those before parsing rather than losing the
- * whole response to a parse error. */
-export function parseJson<T>(text: string, fallback: T): T {
-  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    return fallback;
-  }
 }
