@@ -9,13 +9,20 @@ import { db, getProfileOr404, insertRows } from "../_shared/db.ts";
 import { cachedSearch, extractFacts, parseJson, signal, synthesize } from "../_shared/pipeline.ts";
 
 const SYSTEM_PROMPT = `You are an investor-matching assistant. Given a startup's \
-domain, stage, and market size, plus raw web signal about VC firms and their \
-theses/portfolios, produce a JSON array of up to 5 investor leads: {firm, \
-person, thesis_summary, portfolio_highlights: [], outreach_angle, source_url}. \
-Only include entries that are actual investors or funds -- skip blogs, news \
-sites and tool directories. outreach_angle must reference something real from \
-the signal (a portfolio company, a stated thesis line), not a generic pitch. \
-Respond with a JSON array only, no markdown fences.`;
+domain, stage, and market size, plus web research about the funding landscape, \
+produce a JSON array of up to 5 investor leads: {firm, person, thesis_summary, \
+portfolio_highlights: [], outreach_angle, source_url}.
+
+The research will often be articles and roundups *listing* investors rather \
+than the investors' own sites. That is fine and expected: name the funds \
+mentioned inside those articles, and use the article as the source_url. What \
+you must not do is treat the publication itself as the investor -- a blog, a \
+news outlet or a tool directory is never a "firm".
+
+Each firm must be a real investment fund or VC. outreach_angle should reference \
+something concrete about that firm (a portfolio company, a stated focus). If \
+the research names no actual funds, return an empty array. Respond with a JSON \
+array only, no markdown fences.`;
 
 type RawLead = {
   firm?: string;
@@ -52,7 +59,11 @@ Deno.serve(
     // 2. extract
     const facts = await extractFacts(
       signal(results),
-      `Extract VC firm names, partners, and stated investment thesis for: ${profile.domain}`,
+      `List every investment fund, VC firm or angel investor named anywhere in ` +
+        `this material relating to ${profile.domain}. Include funds mentioned ` +
+        `inside articles and roundups, not just ones with their own page here. ` +
+        `For each, capture: firm name, any partner named, stated focus or thesis, ` +
+        `portfolio companies mentioned, and the url it was found on.`,
     );
 
     // 3. synthesize

@@ -62,12 +62,12 @@ export function Sidebar() {
           <Link
             href="/"
             className="inline-flex min-w-0 items-center gap-2 font-semibold tracking-tight"
-            aria-label="One Place for Startups — home"
+            aria-label="Venture Foundry — home"
             title="Back to home"
           >
             <LogoMark className="h-5 w-5 shrink-0" />
             <span className={`truncate ${collapsed ? "lg:hidden" : ""}`}>
-              One Place for Startups
+              Venture Foundry
             </span>
           </Link>
 

@@ -118,21 +118,21 @@ export default function Landing() {
           <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 py-20 text-center sm:px-8">
             <p className="mb-6 flex items-center gap-3 font-mono text-[11px] tracking-widest text-zinc-500 uppercase">
               <span className="h-px w-8 bg-zinc-700" />
-              Four modules · one shared file
+              Startup research, with sources
               <span className="h-px w-8 bg-zinc-700" />
             </p>
 
             <h1 className="max-w-4xl text-5xl leading-[1.02] font-semibold tracking-tight text-balance sm:text-7xl">
               <span className="block text-4xl font-thin text-zinc-400 italic sm:text-6xl">
-                From a hunch to
+                Research your idea
               </span>
-              a file you can defend
+              before you build it
             </h1>
 
             <p className="mt-7 max-w-xl text-sm leading-relaxed text-balance text-zinc-400">
-              Most AI tools answer from memory. This one searches the live web first, extracts
-              the facts, then reasons — so every number and every name arrives with the source
-              it came from.
+              Venture Foundry researches your market, competitors, cofounders and investors using
+              live web data. Every result shows the source it came from, so you can check the
+              work before you rely on it.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -140,7 +140,7 @@ export default function Landing() {
                 href="/dashboard"
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-200"
               >
-                Start a startup file
+                Get started
                 <ArrowIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
@@ -254,7 +254,7 @@ export default function Landing() {
         <div className="flex flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
             <LogoMark className="h-4 w-4" />
-            One Place for Startups
+            Venture Foundry
           </span>
           <span className="text-xs text-zinc-600">
             Built with native.builder · Supabase · AI/ML API

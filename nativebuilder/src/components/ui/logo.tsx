@@ -38,7 +38,7 @@ export function Logo({
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <LogoMark className={markClass} />
-      <span className="font-semibold tracking-tight">One Place for Startups</span>
+      <span className="font-semibold tracking-tight">Venture Foundry</span>
     </span>
   );
 }

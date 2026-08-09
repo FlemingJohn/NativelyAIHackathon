@@ -51,16 +51,28 @@ export async function cachedSearch(
     .eq("cache_key", key)
     .maybeSingle();
 
-  if (cached?.raw_response) {
-    return { results: cached.raw_response as SearchResult[], provider: "cache" };
+  // An empty cached result is treated as a miss. Caching a failed search
+  // poisons that query permanently -- which is exactly what happened when
+  // DuckDuckGo changed its markup: every module kept serving [] from cache
+  // long after the underlying problem was fixable.
+  const hit = cached?.raw_response as SearchResult[] | undefined;
+  if (Array.isArray(hit) && hit.length > 0) {
+    return { results: hit, provider: "cache" };
   }
 
   const { results, provider } = await searchEngine(query);
-  // tool_name records which provider paid for the row, so a cache built on the
-  // free fallback is distinguishable from one built on Bright Data.
-  await db
-    .from("scrape_cache")
-    .insert({ cache_key: key, tool_name: `${toolName}:${provider}`, raw_response: results });
+
+  if (results.length > 0) {
+    // upsert, so a previously poisoned row gets replaced rather than colliding.
+    // tool_name records which provider paid for the row, so a cache built on
+    // the free fallback is distinguishable from one built on Bright Data.
+    await db
+      .from("scrape_cache")
+      .upsert(
+        { cache_key: key, tool_name: `${toolName}:${provider}`, raw_response: results },
+        { onConflict: "cache_key" },
+      );
+  }
 
   return { results, provider };
 }
