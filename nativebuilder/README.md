@@ -1,45 +1,199 @@
-# One Place for Startups — native.builder edition
+<p align="center">
+  <img src="docs/banner.svg" alt="Venture Foundry — startup research, with sources" width="100%">
+</p>
 
-The same app, reshaped to what native.builder runs: a Vite + React frontend and
-Supabase Edge Functions instead of an Express server. Your four pages, nav, and
-profile context came across as-is; only their imports changed.
+<p align="center">
+  <em>Research your idea before you build it. Every result carries the link it came from.</em>
+</p>
 
-Verified: `tsc --noEmit` + `vite build` clean (38 modules), and all 10 Edge
-Function files pass `deno check`.
+<p align="center">
+  <a href="#the-problem">Problem</a> ·
+  <a href="#the-solution">Solution</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#how-we-use-bright-data">Bright Data</a> ·
+  <a href="#how-we-use-aiml-api">AI/ML API</a> ·
+  <a href="#setup">Setup</a>
+</p>
 
-## Setup, in order
+---
+
+## The problem
+
+A founder validating an idea has to answer four questions before anyone will
+take them seriously:
+
+1. Is this a real problem, or does it just feel like one?
+2. How big is the market, and how do you know?
+3. Who covers the skills I don't have?
+4. Which investors actually fund this, and what do I say to them?
+
+Today that means a fortnight of browser tabs — or twenty minutes with a chatbot
+that answers confidently from training data. **The second is worse**, because the
+output looks like research. Ask an LLM for the TAM of carbon-accounting software
+and you get a number with no provenance: no source, no method, no date. It might
+be right. You cannot tell, and neither can the investor you repeat it to.
+
+## The solution
+
+**Venture Foundry never lets the model supply the evidence.**
+
+Every answer starts with a live web search. The results are turned into
+structured facts by one model, and only then does a second, stronger model
+reason over those facts. The model's job is to interpret evidence it was handed
+— never to recall it.
+
+The result: a market size that arrives with the ten pages it was derived from, a
+cofounder candidate with a LinkedIn URL you can open, an investor with an
+opening line quoting something they actually published.
+
+Four modules write into **one shared startup profile**, so each one starts where
+the last finished:
+
+```
+Ideation ──writes domain──▶ Market ──writes idea_text──▶ Capital
+                                                    ▲
+                    People ──writes founder_skills──┘   reads domain + latest TAM
+```
+
+Capital is locked in the UI until a domain exists, because that dependency is
+real rather than decorative.
+
+## How we solve it
+
+Every module runs the same three steps:
+
+| Step | What happens | Cost profile |
+|---|---|---|
+| **Gather** | Bright Data SERP API returns parsed Google results, cached in `scrape_cache` by query hash | one search, cached forever |
+| **Extract** | `gpt-4o-mini` turns raw results into structured JSON facts | cheap, high volume |
+| **Synthesize** | `gpt-4o` reasons over those facts plus the profile, and writes the result | expensive, low volume |
+
+Splitting the cheap and expensive passes is the point: the small model reads
+everything, the large model reads only what survived.
+
+## Architecture
+
+<p align="center">
+  <img src="docs/architecture.svg" alt="Architecture: browser → Supabase Edge Functions → Bright Data and AI/ML API" width="100%">
+</p>
+
+The browser holds only the Supabase URL and publishable key. **RLS is enabled on
+all six tables with zero policies**, so that key can read nothing — verified:
+anon `SELECT` returns `[]`, anon `INSERT` returns `42501`. Every read and write
+goes through an Edge Function using the service role, which is also where the
+Bright Data and AI/ML keys live. Nothing secret is ever compiled into the bundle.
+
+## How we use Bright Data
+
+Bright Data is the **only** search path. There is no fallback scraper — a module
+that cannot gather evidence raises `503`/`502` rather than quietly answering
+with nothing behind it.
+
+**SERP API** — parsed Google results via `brd_json=1`, so we never parse HTML.
+It also makes `site:` filters usable, which matters more than it sounds.
+
+**Web Scraper API** — the LinkedIn Profiles dataset (`gd_l1viktl72bvl7bjuj0`).
+
+### The two-stage flow that makes cofounder search work
+
+This module returned **zero results** for the entire life of the project until
+Bright Data was wired in, and the reason is instructive: a plain web search
+returns *articles about cofounder matching*. It cannot return people.
+
+```
+1. SERP API      site:linkedin.com/in "GTM cofounder fintech" climate fintech
+                 └─▶ 8 real profile URLs   (site: only works through Bright Data)
+
+2. Datasets API  those 8 URLs → LinkedIn Profiles dataset
+                 └─▶ structured records: headline, current role, experience
+
+3. Synthesis     rank by how well each closes the gap the founder named
+```
+
+Stage one's output is stage two's input — the search decides what gets scraped.
+That is the agentic part, and it is the difference between "no candidates found"
+and a named person with a working profile link.
+
+Bounded on purpose: URLs deduped and capped at 8, dataset polling budgeted at
+90s, everything cached by query. A dataset job that outruns its budget degrades
+to the SERP results instead of failing the request.
+
+## How we use AI/ML API
+
+One key, two models, chosen per pass:
+
+```ts
+chat(messages, { reasoning: false })  // gpt-4o-mini — extraction
+chat(messages, { reasoning: true })   // gpt-4o      — synthesis
+```
+
+Both configurable by env (`AIML_FAST_MODEL`, `AIML_REASONING_MODEL`), so model
+choice is a deployment decision, not a code change.
+
+One hard-won detail lives in `_shared/pipeline.ts`: the fast model wraps its JSON
+in ` ```json ` fences often enough that a bare `JSON.parse` throws most
+extractions away — and the synthesis pass then reasons over
+`{raw: "```json..."}` instead of facts. That single bug produced **0 investor
+leads and 0 citations**. `parseJson` strips fences before parsing, in both
+passes.
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Frontend | Vite + React 19 + TypeScript, Tailwind v4 |
+| Built & deployed with | **native.builder** — Vite/React app published to `*.nativelyai.app` |
+| Backend | Supabase Edge Functions (Deno + TypeScript) |
+| Database | Supabase Postgres — 6 tables, RLS, `updated_at` trigger |
+| Search & scraping | Bright Data — SERP API + Web Scraper API |
+| Models | AI/ML API — `gpt-4o-mini`, `gpt-4o` |
+| 3D | three.js (landing hero), lazy-loaded so app pages don't pay for it |
+
+## What's novel here
+
+**Provenance is the product.** Most "AI research assistants" produce prose you
+have to trust. Every result here shows where it came from — `Sourced via Bright
+Data · Google SERP`, with clickable citations on each claim. You can check the
+work before you rely on it.
+
+**The model never supplies the evidence.** Gather → extract → synthesize is a
+structural guarantee, not a prompt instruction. The synthesis model only ever
+sees facts extracted from a real search.
+
+**Search output feeds the scraper.** Cofounder search chains two Bright Data
+products, using the first's results to decide the second's inputs.
+
+**One file, four modules.** State accumulates rather than resetting. By the time
+you reach Capital it already knows your domain and your market size.
+
+## Setup
 
 ### 1. Database
 
 Supabase → **SQL Editor** → paste [`supabase/schema.sql`](./supabase/schema.sql) → Run.
 
-Creates 6 tables, indexes, an `updated_at` trigger, and enables RLS with **no
-policies** — anon is denied outright. The Edge Functions use the service-role
-key, which bypasses RLS, so nothing reachable from a browser can read a row.
+Creates 6 tables, indexes, an `updated_at` trigger, and enables RLS with no
+policies — anon is denied outright.
 
 ### 2. Edge Function secrets
 
 Template: [`supabase/functions/.env.example`](./supabase/functions/.env.example)
 
-Set them in Supabase → **Edge Functions → Secrets**, or:
-
 ```bash
 supabase secrets set --env-file supabase/functions/.env
 ```
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically —
-don't set those yourself.
+| File | Goes where | Public? |
+|---|---|---|
+| [`.env.example`](./.env.example) | frontend env | ✅ ships in the bundle |
+| [`supabase/functions/.env.example`](./supabase/functions/.env.example) | Edge Function secrets | ❌ server-side only |
 
-**There are two env files, and the split is deliberate:**
+Never move `AIML_API_KEY` or `BRIGHTDATA_API_TOKEN` into the frontend file.
 
-| File | Goes where | Holds | Public? |
-|---|---|---|---|
-| [`.env.example`](./.env.example) | native.builder project env | Supabase URL + anon key | ✅ ships in the bundle |
-| [`supabase/functions/.env.example`](./supabase/functions/.env.example) | Supabase Edge Function secrets | AI/ML key, Bright Data token | ❌ server-side only |
-
-Never move `AIML_API_KEY` into the frontend file. Anything `VITE_`-prefixed is
-compiled into the public JS bundle, and keeping that key server-side is the
-main reason these functions exist.
+**Bright Data needs a zone.** Create one at
+[brightdata.com/cp/zones](https://brightdata.com/cp/zones) and set
+`BRIGHTDATA_SERP_ZONE` to its name — a token alone is not enough, and requests
+fail with `zone_not_found`.
 
 ### 3. Deploy the functions
 
@@ -47,15 +201,16 @@ main reason these functions exist.
 supabase functions deploy profile idea market cofounder investor
 ```
 
-Or paste each one in the dashboard (**Edge Functions → Deploy a new function**),
-naming them `profile`, `idea`, `market`, `cofounder`, `investor`. `_shared/` is
-not a function — the leading underscore keeps it from being deployed as one.
+`_shared/` is not a function — the leading underscore keeps Supabase from
+deploying it as one.
 
 ### 4. Frontend
 
-Paste `src/` and `public/` into the native.builder project, add the two env
-vars from [`.env.example`](./.env.example), and add no dependencies — the app
-uses only React and Tailwind.
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm run build
+```
 
 ## Endpoints
 
@@ -63,75 +218,21 @@ uses only React and Tailwind.
 |---|---|---|
 | `POST /functions/v1/profile` | `{owner_id}` | profile |
 | `GET /functions/v1/profile/:id` | — | profile |
+| `GET /functions/v1/profile/:id/full` | — | profile + all saved results |
 | `PATCH /functions/v1/profile/:id` | partial profile | profile |
-| `POST /functions/v1/idea` | `{profile_id, domain, interests}` | `{idea_cards}` |
-| `POST /functions/v1/market` | `{profile_id, idea_text}` | `{market_report}` |
-| `POST /functions/v1/cofounder` | `{profile_id, founder_profile, desired_complement}` | `{matches}` |
-| `POST /functions/v1/investor` | `{profile_id}` | `{leads}` |
+| `POST /functions/v1/idea` | `{profile_id, domain, interests}` | `{idea_cards, sourced_via}` |
+| `POST /functions/v1/market` | `{profile_id, idea_text}` | `{market_report, sourced_via}` |
+| `POST /functions/v1/cofounder` | `{profile_id, founder_profile, desired_complement}` | `{matches, sourced_via, profiles_enriched}` |
+| `POST /functions/v1/investor` | `{profile_id}` | `{leads, sourced_via}` |
 
-Errors come back as `{ "detail": "..." }`, the same shape the pages already parse.
+Errors come back as `{ "detail": "..." }`.
 
-## How a module works
+## Known limits
 
-Every one runs the same three steps, server-side:
-
-1. **gather** — DuckDuckGo search, cached in `scrape_cache` by `sha256(tool + query)`
-2. **extract** — fast model turns raw results into structured facts
-3. **synthesize** — reasoning model turns facts + profile into the output, saved
-   against `profile_id` and returned with citations
-
-The profile is the spine: Idea writes `domain`, Market writes `idea_text`,
-Investor reads both back and refuses with a clear message if `domain` is unset.
-
-## Bright Data
-
-Set `BRIGHTDATA_API_TOKEN` and the search layer switches provider — every
-module calls `searchEngine`, so nothing else changes. Responses report which
-provider served them in `sourced_via`.
-
-| | Without a token | With a token |
-|---|---|---|
-| Search | DuckDuckGo HTML | Bright Data SERP API (parsed Google) |
-| `site:` filters | ignored | respected |
-| Blocking | rate-limited, often empty | handled server-side |
-| Cofounder search | returns nothing | LinkedIn profile records |
-
-**Cofounder search is the module that needs it.** With a token it runs two
-stages instead of one:
-
-1. **SERP API** with `site:linkedin.com/in <what you're missing> <domain>` →
-   real profile URLs. Google blocks the free fallback outright, which is why
-   `site:` queries were useless before.
-2. **LinkedIn Profiles dataset** (`gd_l1viktl72bvl7bjuj0`) on those URLs →
-   structured person records the model can reason over, instead of search
-   snippets that never named anyone.
-
-Spend control: profile URLs are deduped and capped at 5 per search, the
-dataset poll has a 60s budget, and results are cached in `scrape_cache` keyed
-by query — a repeat run costs nothing. If the dataset job outruns its budget
-the module degrades to the SERP results rather than failing.
-
-## Two things worth knowing
-
-- **Fence stripping is load-bearing.** The fast model wraps JSON in ` ```json `
-  fences; a bare `JSON.parse` swallows the whole extraction and synthesis then
-  reasons over garbage. That single bug produced 0 investor leads and 0
-  citations before it was found. See `parseJson` in `_shared/pipeline.ts`.
-- **Cofounder search needs Bright Data.** Without a token it falls back to
-  DuckDuckGo, which returns articles *about* cofounder matching rather than
-  people, so the module comes back empty. The model is told to return `[]`
-  rather than invent names, and the UI explains why. See the Bright Data
-  section above.
-
-## What changed from the Next.js version
-
-| | Before | After |
-|---|---|---|
-| Routing | `app/idea/page.tsx` | `pages/Idea.tsx` + `lib/router.tsx` |
-| Links | `next/link`, `usePathname` | `Link`, `useRouter` from `lib/router` |
-| Client marker | `"use client"` | not needed |
-| Layout | `app/layout.tsx` | `App.tsx` |
-| Backend | `localhost:8000` | `{SUPABASE_URL}/functions/v1` |
-| Fonts | `next/font` (Geist) | system font stack |
-
-Page JSX is otherwise untouched, Tailwind classes included.
+- **No auth.** One profile per browser via `localStorage`. Fine for a demo, not
+  for real users — the next step is Supabase Auth with policies scoped by
+  `auth.uid()`.
+- **Cofounder yield varies.** Google surfaces the profiles it surfaces; some
+  searches enrich eight and produce one strong match.
+- **No streaming.** Bright Data returns one response per request, so search
+  cannot stream. The AI/ML calls could, and that's the natural next improvement.

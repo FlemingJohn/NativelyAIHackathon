@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Venture Foundry — startup research, with sources">
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3f3f46" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3f3f46" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="300" fill="url(#ground)"/>
+
+  <!-- terrain, echoing the GLSL hero -->
+  <g stroke="#52525b" fill="none" stroke-width="1" opacity="0.45">
+    <path d="M0 232 Q 100 214 200 226 T 400 220 T 600 234 T 800 216 T 1000 228 T 1200 218"/>
+    <path d="M0 250 Q 120 232 240 244 T 480 236 T 720 250 T 960 234 T 1200 244"/>
+    <path d="M0 268 Q 140 252 280 262 T 560 254 T 840 266 T 1120 252 T 1200 260"/>
+    <path d="M0 286 Q 160 272 320 280 T 640 274 T 960 284 T 1200 276"/>
+  </g>
+
+  <!-- aperture mark: four blades, one focus -->
+  <g transform="translate(88 104) scale(2.1)" stroke="#fafafa" stroke-width="1.75" fill="none" stroke-linecap="round">
+    <path d="M19.9 12.7A8 8 0 0 1 12.7 19.9"/>
+    <path d="M11.3 19.9A8 8 0 0 1 4.1 12.7"/>
+    <path d="M4.1 11.3A8 8 0 0 1 11.3 4.1"/>
+    <path d="M12.7 4.1A8 8 0 0 1 19.9 11.3"/>
+    <circle cx="12" cy="12" r="2.2" fill="#fafafa" stroke="none"/>
+  </g>
+
+  <text x="152" y="126" font-family="'Segoe UI',system-ui,sans-serif" font-size="42" font-weight="600" fill="#fafafa" letter-spacing="-1">Venture Foundry</text>
+  <text x="153" y="162" font-family="ui-monospace,'Cascadia Mono',monospace" font-size="14" fill="#a1a1aa" letter-spacing="3">STARTUP RESEARCH, WITH SOURCES</text>
+
+  <rect x="153" y="182" width="360" height="1" fill="url(#fade)"/>
+
+  <text x="153" y="212" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" fill="#d4d4d8">Research your idea before you build it — every result carries the link it came from.</text>
+
+  <!-- provenance chip -->
+  <g transform="translate(880 88)">
+    <rect width="238" height="30" rx="15" fill="#052e16" stroke="#16a34a" stroke-opacity="0.5"/>
+    <circle cx="18" cy="15" r="3.5" fill="#22c55e"/>
+    <text x="32" y="20" font-family="ui-monospace,monospace" font-size="11" fill="#4ade80">Sourced via Bright Data</text>
+  </g>
+  <g transform="translate(880 130)">
+    <rect width="238" height="30" rx="15" fill="#1c1917" stroke="#3f3f46"/>
+    <circle cx="18" cy="15" r="3.5" fill="#a1a1aa"/>
+    <text x="32" y="20" font-family="ui-monospace,monospace" font-size="11" fill="#a1a1aa">gpt-4o-mini → gpt-4o</text>
+  </g>
+</svg>
