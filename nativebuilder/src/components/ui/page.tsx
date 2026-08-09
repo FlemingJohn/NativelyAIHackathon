@@ -148,7 +148,11 @@ export function SourceChip({ url }: { url: string }) {
 }
 
 /** Score meter + level pill. Colour alone never carries the level — the pill
- * says it in words. */
+ * says it in words.
+ *
+ * The wording describes the *gap*, not the person: "doesn't cover it" is a
+ * statement about what the founder asked for. "Not a fit" reads as a verdict
+ * on a real named human, which is not what the score measures. */
 export function FitBadge({ score, level }: { score: number; level?: string }) {
   const tone =
     level === "strong"
@@ -163,7 +167,11 @@ export function FitBadge({ score, level }: { score: number; level?: string }) {
         ? "text-amber-600 dark:text-amber-400"
         : "text-zinc-500";
   const words =
-    level === "strong" ? "strong fit" : level === "partial" ? "partial" : "not a fit";
+    level === "strong"
+      ? "covers your gap"
+      : level === "partial"
+        ? "covers some of it"
+        : "doesn't cover it";
 
   return (
     <span className="flex items-center gap-2">

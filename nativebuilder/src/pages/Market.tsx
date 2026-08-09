@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Explain, MethodDiagram, NestedMarketDiagram } from "../components/ui/explain";
 import { MarketIcon } from "../components/ui/icons";
 import {
   Bar,
@@ -31,11 +32,26 @@ function parseMoney(text: string | null): number | null {
   return n * mult;
 }
 
+const TERMS = {
+  TAM: {
+    full: "Total Addressable Market",
+    what: "Everyone in the world who could ever buy a product like this.",
+  },
+  SAM: {
+    full: "Serviceable Addressable Market",
+    what: "The slice of that you can actually reach — your segment, geography and channel.",
+  },
+  SOM: {
+    full: "Serviceable Obtainable Market",
+    what: "What you could realistically win from that slice in the next few years.",
+  },
+} as const;
+
 function MarketFigure({ report }: { report: MarketReport }) {
   const rows = [
-    { key: "TAM", label: report.tam, value: parseMoney(report.tam), fill: "bg-emerald-200 dark:bg-emerald-900" },
-    { key: "SAM", label: report.sam, value: parseMoney(report.sam), fill: "bg-emerald-400 dark:bg-emerald-600" },
-    { key: "SOM", label: report.som, value: parseMoney(report.som), fill: "bg-emerald-700 dark:bg-emerald-300" },
+    { key: "TAM" as const, label: report.tam, value: parseMoney(report.tam), fill: "bg-emerald-200 dark:bg-emerald-900" },
+    { key: "SAM" as const, label: report.sam, value: parseMoney(report.sam), fill: "bg-emerald-400 dark:bg-emerald-600" },
+    { key: "SOM" as const, label: report.som, value: parseMoney(report.som), fill: "bg-emerald-700 dark:bg-emerald-300" },
   ];
 
   const max = Math.max(...rows.map((r) => r.value ?? 0));
@@ -46,13 +62,24 @@ function MarketFigure({ report }: { report: MarketReport }) {
 
   return (
     <figure className="m-0 rounded-lg border border-black/10 p-5 dark:border-white/10">
-      <figcaption className="mb-4 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
+      <figcaption className="mb-1 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
         Addressable market
       </figcaption>
+      <p className="mb-4 max-w-2xl text-xs text-zinc-500">
+        Three nested numbers, biggest to smallest. An investor asks for all three — quoting only
+        the top one is the classic mistake.
+      </p>
 
       {rows.map((r) => (
-        <div key={r.key} className="mb-2 grid grid-cols-[3rem_1fr_auto] items-center gap-3 last:mb-0">
-          <span className="font-mono text-[11px] text-zinc-500">{r.key}</span>
+        <div key={r.key} className="mb-2 grid grid-cols-[3.4rem_1fr_auto] items-center gap-3 last:mb-0">
+          <span className="font-mono text-[11px] text-zinc-500">
+            <Explain term={r.key}>
+              <b className="text-black dark:text-white">{TERMS[r.key].full}</b>
+              <br />
+              {TERMS[r.key].what}
+              <NestedMarketDiagram className="mt-2 w-full text-zinc-600 dark:text-zinc-300" />
+            </Explain>
+          </span>
           <span className="h-7 overflow-hidden rounded bg-black/[0.04] dark:bg-white/[0.06]">
             {scaled && r.value ? (
               <span
@@ -158,10 +185,17 @@ export default function MarketPage() {
 
           {report.methodology_notes && (
             <div className="rounded-lg border border-black/10 bg-black/[0.015] p-4 dark:border-white/10 dark:bg-white/[0.02]">
-              <p className="text-xs text-zinc-500">How it got there</p>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                {report.methodology_notes}
-              </p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-zinc-500">
+                    How these numbers were reached — check this before you quote them
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    {report.methodology_notes}
+                  </p>
+                </div>
+                <MethodDiagram className="w-[220px] shrink-0 text-zinc-500 dark:text-zinc-400" />
+              </div>
             </div>
           )}
 

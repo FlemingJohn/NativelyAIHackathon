@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Explain } from "../components/ui/explain";
 import { IdeationIcon } from "../components/ui/icons";
 import {
   Bar,
@@ -82,7 +83,11 @@ export default function IdeaPage() {
       bar={
         <form onSubmit={onSubmit}>
           <Bar>
-            <BarField label="Domain" grow>
+            <BarField
+              label="Industry to search"
+              hint="Where we go looking for problems people are complaining about."
+              grow
+            >
               <input
                 className={inputClass}
                 value={domain}
@@ -91,7 +96,11 @@ export default function IdeaPage() {
                 required
               />
             </BarField>
-            <BarField label="Your expertise" grow>
+            <BarField
+              label="What you already know (optional)"
+              hint="Steers ideas toward your experience instead of generic ones."
+              grow
+            >
               <input
                 className={inputClass}
                 value={interests}
@@ -152,6 +161,19 @@ export default function IdeaPage() {
                     <div className="flex flex-wrap items-center gap-2.5">
                       <Rank n={i + 1} />
                       <FitBadge score={card.fit_score ?? 0} />
+                      {i === 0 && (
+                        <span className="text-xs text-zinc-500">
+                          <Explain term="what's this score?">
+                            <b className="text-black dark:text-white">
+                              How strongly the evidence backs it
+                            </b>
+                            <br />
+                            Not how exciting the idea sounds — how much the search results actually
+                            showed people hitting this problem. A high score means several sources
+                            complained about it.
+                          </Explain>
+                        </span>
+                      )}
                       {inUse && (
                         <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-mono text-[9.5px] tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
                           in use

@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Explain, GapDiagram } from "../components/ui/explain";
 import { PeopleIcon } from "../components/ui/icons";
 import {
   Bar,
@@ -92,7 +93,11 @@ export default function CofounderPage() {
                 placeholder="backend, ML, infra"
               />
             </BarField>
-            <BarField label="Who you're looking for" grow>
+            <BarField
+              label="The gap you need filled"
+              hint="What you can't do yourself — this is what candidates are scored against."
+              grow
+            >
               <input
                 className={inputClass}
                 value={desiredComplement}
@@ -164,6 +169,17 @@ export default function CofounderPage() {
                   <div className="flex flex-wrap items-center gap-2.5">
                     <Rank n={i + 1} />
                     <FitBadge score={m.fit_score} level={m.fit_level} />
+                    {i === 0 && (
+                      <span className="text-xs text-zinc-500">
+                        <Explain term="what's this score?">
+                          <b className="text-black dark:text-white">How much of your gap they close</b>
+                          <br />
+                          You said you can do backend and ML but not sales. The score is how much of
+                          that missing half this person covers — nothing about how good they are.
+                          <GapDiagram className="mt-2 w-full text-zinc-600 dark:text-zinc-300" />
+                        </Explain>
+                      </span>
+                    )}
                   </div>
                   <h2 className="mt-2 font-medium">{m.name}</h2>
                   {m.headline && (
@@ -203,9 +219,15 @@ export default function CofounderPage() {
 
           {rest.length > 0 && (
             <div className="rounded-lg border border-black/10 dark:border-white/10">
-              <p className="px-4 pt-4 pb-2 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
-                The other {rest.length}, and why they ranked lower
-              </p>
+              <div className="px-4 pt-4 pb-2">
+                <p className="font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
+                  The other {rest.length}, and why they ranked lower
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Everyone the search found is listed. A low score says the person doesn&apos;t
+                  close the gap you named — not that they aren&apos;t good.
+                </p>
+              </div>
               <ul className="divide-y divide-black/5 dark:divide-white/5">
                 {rest.map((m, i) => (
                   <li
