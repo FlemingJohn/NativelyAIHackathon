@@ -34,16 +34,86 @@ const hits = (a: Box, b: Box) =>
 
 type Point = { i: number; x: number; y: number; text: string };
 
+const DOT = 7;
+const MIN_GAP = 21; // centre-to-centre, so two dots never touch
+
+/**
+ * Nudge coincident dots apart.
+ *
+ * The model scores on a 0-100 grid and routinely lands two competitors on the
+ * same square — a live run put Persefoni and Plan A both at (30,60), so one was
+ * invisible underneath the other. A few relaxation passes separate them by the
+ * smallest distance that keeps both readable; the shift is at most ~1.5% of an
+ * axis, which is well inside the precision those scores actually carry.
+ */
+function separate(points: Point[]): Point[] {
+  const p = points.map((o) => ({ ...o }));
+
+  for (let pass = 0; pass < 60; pass++) {
+    let moved = false;
+
+    for (let i = 0; i < p.length; i++) {
+      for (let j = i + 1; j < p.length; j++) {
+        const a = p[i]!;
+        const b = p[j]!;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const d = Math.hypot(dx, dy);
+        if (d >= MIN_GAP) continue;
+
+        if (d < 0.01) {
+          // Exactly coincident: fan them out by golden angle so the result is
+          // deterministic rather than dependent on array order.
+          const angle = j * 2.399963;
+          b.x += Math.cos(angle) * MIN_GAP;
+          b.y += Math.sin(angle) * MIN_GAP;
+        } else {
+          const push = (MIN_GAP - d) / 2;
+          a.x -= (dx / d) * push;
+          a.y -= (dy / d) * push;
+          b.x += (dx / d) * push;
+          b.y += (dy / d) * push;
+        }
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+
+  return p.map((o) => ({
+    ...o,
+    x: Math.min(W - M.r - DOT, Math.max(M.l + DOT, o.x)),
+    y: Math.min(H - M.b - DOT, Math.max(M.t + DOT, o.y)),
+  }));
+}
+
+/** "Salesforce (Net Zero Cloud)" is 27 characters of label fighting for room
+ * next to a 7px dot. The parenthetical is almost always the product name, and
+ * the company name is what identifies it on a chart. */
+function shortName(name: string): string {
+  const base = name.replace(/\s*\([^)]*\)\s*/g, " ").trim() || name;
+  return base.length > 20 ? `${base.slice(0, 19)}…` : base;
+}
+
 function placeLabels(points: Point[], blocked: Box[]) {
-  const taken = [...blocked];
+  // Every dot blocks every label — otherwise a label lands neatly on top of
+  // someone else's marker, which reads as a mislabelled point.
+  const taken: Box[] = [
+    ...blocked,
+    ...points.map((p) => [p.x - DOT - 2, p.y - DOT - 2, DOT * 2 + 4, DOT * 2 + 4] as Box),
+  ];
 
   return points.map((p) => {
     const w = p.text.length * CHAR + 6;
     const slots: { tx: number; ty: number; anchor: "start" | "end" | "middle"; box: Box }[] = [
-      { tx: p.x + 13, ty: p.y + 4, anchor: "start", box: [p.x + 11, p.y - 6, w, LINE] },
-      { tx: p.x - 13, ty: p.y + 4, anchor: "end", box: [p.x - 11 - w, p.y - 6, w, LINE] },
-      { tx: p.x, ty: p.y - 15, anchor: "middle", box: [p.x - w / 2, p.y - 25, w, LINE] },
-      { tx: p.x, ty: p.y + 24, anchor: "middle", box: [p.x - w / 2, p.y + 14, w, LINE] },
+      { tx: p.x + 12, ty: p.y + 4, anchor: "start", box: [p.x + 10, p.y - 6, w, LINE] },
+      { tx: p.x - 12, ty: p.y + 4, anchor: "end", box: [p.x - 10 - w, p.y - 6, w, LINE] },
+      { tx: p.x, ty: p.y - 14, anchor: "middle", box: [p.x - w / 2, p.y - 24, w, LINE] },
+      { tx: p.x, ty: p.y + 23, anchor: "middle", box: [p.x - w / 2, p.y + 13, w, LINE] },
+      { tx: p.x + 11, ty: p.y - 11, anchor: "start", box: [p.x + 9, p.y - 21, w, LINE] },
+      { tx: p.x + 11, ty: p.y + 19, anchor: "start", box: [p.x + 9, p.y + 9, w, LINE] },
+      { tx: p.x - 11, ty: p.y - 11, anchor: "end", box: [p.x - 9 - w, p.y - 21, w, LINE] },
+      { tx: p.x - 11, ty: p.y + 19, anchor: "end", box: [p.x - 9 - w, p.y + 9, w, LINE] },
     ];
 
     const fits =
@@ -92,7 +162,14 @@ export function PositioningMap({ pos }: { pos: Positioning }) {
   if (gap) blocked.push([px(gap.x0) + 8, py(gap.y1) + 8, 220, LINE]);
 
   const placed = placeLabels(
-    pos.competitors.map((c, i) => ({ i, x: px(c.x), y: py(c.y), text: c.name })),
+    separate(
+      pos.competitors.map((c, i) => ({
+        i,
+        x: px(c.x),
+        y: py(c.y),
+        text: shortName(c.name),
+      })),
+    ),
     blocked,
   );
 

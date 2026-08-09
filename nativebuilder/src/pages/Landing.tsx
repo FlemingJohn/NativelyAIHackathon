@@ -162,17 +162,6 @@ export default function Landing() {
               </Link>
             </div>
 
-            <dl className="mt-24 grid w-full gap-x-8 gap-y-7 border-t border-white/10 pt-8 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((f) => (
-                <div key={f.n} className="flex flex-col items-center">
-                  <dt className="flex items-center gap-2 text-sm font-medium">
-                    <f.icon className="h-4 w-4 text-zinc-500" />
-                    {f.name}
-                  </dt>
-                  <dd className="mt-1.5 text-xs leading-relaxed text-zinc-500">{f.claim}</dd>
-                </div>
-              ))}
-            </dl>
           </main>
         </div>
       </section>
