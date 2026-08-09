@@ -18,7 +18,7 @@ import type { SourcedVia } from "../lib/types";
 import { useSaved } from "../lib/use-saved";
 
 export default function InvestorPage() {
-  const { profile } = useProfile();
+  const { profile, refresh } = useProfile();
   const { saved: leads, restoring, setSaved: setLeads } = useSaved((f) =>
     f.leads.length ? f.leads : null,
   );
@@ -36,6 +36,7 @@ export default function InvestorPage() {
       const { leads, sourced_via } = await api.searchInvestors(profile.id);
       setLeads(leads as InvestorLead[]);
       setVia(sourced_via);
+      await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to search investors");
     } finally {

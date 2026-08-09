@@ -30,7 +30,7 @@ import { useSaved } from "../lib/use-saved";
 const FULL_CARD_LIMIT = 2;
 
 export default function CofounderPage() {
-  const { profile } = useProfile();
+  const { profile, refresh } = useProfile();
   const [background, setBackground] = useState("technical");
   const [skills, setSkills] = useState("");
   const [desiredComplement, setDesiredComplement] = useState("");
@@ -58,6 +58,7 @@ export default function CofounderPage() {
       setVia(res.sourced_via);
       setFound(res.profiles_found ?? 0);
       setEnriched(res.profiles_enriched ?? 0);
+      await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to search cofounders");
     } finally {

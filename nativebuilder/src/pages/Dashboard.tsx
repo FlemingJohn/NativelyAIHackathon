@@ -19,13 +19,13 @@ function Stat({ label, value }: { label: string; value: string | null | undefine
 }
 
 export default function Dashboard() {
-  const { profile, loading, error, refresh } = useProfile();
+  const { profile, counts, loading, error, refresh } = useProfile();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [stage, setStage] = useState("");
   const [targetMarket, setTargetMarket] = useState("");
 
-  const done = completedCount(profile);
+  const done = completedCount(profile, counts);
   const pct = Math.round((done / MODULES.length) * 100);
 
   function startEditing() {
@@ -187,7 +187,7 @@ export default function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2">
         {MODULES.map((m) => {
           const locked = m.locked(profile);
-          const isDone = m.done(profile);
+          const isDone = m.done(profile, counts);
 
           const body = (
             <>
@@ -234,7 +234,7 @@ export default function Dashboard() {
               </div>
 
               <div className="mt-3 flex items-center justify-between gap-2 text-xs">
-                <span className="text-zinc-500">{m.summary(profile)}</span>
+                <span className="text-zinc-500">{m.summary(profile, counts)}</span>
                 {!locked && (
                   <span className="inline-flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                     Open

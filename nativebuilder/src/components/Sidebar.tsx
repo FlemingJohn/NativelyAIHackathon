@@ -22,7 +22,7 @@ const STORAGE_KEY = "sidebar-collapsed";
  */
 export function Sidebar() {
   const { path } = useRouter();
-  const { profile, loading } = useProfile();
+  const { profile, counts, loading } = useProfile();
 
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY) === "1",
@@ -32,7 +32,7 @@ export function Sidebar() {
     localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
   }, [collapsed]);
 
-  const done = completedCount(profile);
+  const done = completedCount(profile, counts);
   const pct = Math.round((done / MODULES.length) * 100);
 
   const itemBase = "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors";
@@ -131,7 +131,7 @@ export function Sidebar() {
           {MODULES.map((m) => {
             const isActive = path === m.href;
             const isLocked = m.locked(profile);
-            const isDone = m.done(profile);
+            const isDone = m.done(profile, counts);
 
             return (
               <Link
