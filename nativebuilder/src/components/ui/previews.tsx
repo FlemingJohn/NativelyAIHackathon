@@ -95,29 +95,37 @@ export function IdeaPreview({ className }: PreviewProps) {
   );
 }
 
-/** Competitors scattered on two axes with one mark standing apart — the shape
- * of the positioning map, at thumbnail size. */
+/**
+ * Competitors on two axes with your idea standing apart — the positioning map
+ * at thumbnail size.
+ *
+ * The empty region is drawn at x 74–150, y 34–86 and every competitor is kept
+ * outside it. An earlier version had a competitor dot *and* the YOU marker
+ * sitting inside a box captioned "nobody here", which contradicted itself.
+ * You belong in the gap — that's the whole point — so the caption sits at the
+ * bottom of the box, clear of the marker.
+ */
 export function PositioningPreview({ className }: PreviewProps) {
   const dots = [
-    [104, 58], [148, 44], [186, 74], [122, 108], [206, 116], [166, 132],
+    [176, 52], [216, 74], [254, 46], [166, 112], [232, 122], [198, 140], [110, 124],
   ];
   return (
     <svg {...frame} className={className} aria-label="Competitor positioning preview">
       <line x1="66" y1="26" x2="66" y2="150" className="stroke-current opacity-25" strokeWidth="1" />
       <line x1="66" y1="150" x2="300" y2="150" className="stroke-current opacity-25" strokeWidth="1" />
 
-      <rect x="72" y="30" width="86" height="52" rx="4"
+      <rect x="74" y="34" width="76" height="52" rx="4"
             className="fill-amber-500/10 stroke-amber-500/50" strokeWidth="1" strokeDasharray="3 3" />
-      <text x="80" y="46" className="fill-current text-[7px]" opacity=".6">nobody here</text>
+      <text x="79" y="81" className="fill-current text-[7px]" opacity=".6">nobody here</text>
 
       {dots.map(([cx, cy], i) => (
         <circle key={i} cx={cx} cy={cy} r="4.5"
                 className="fill-transparent stroke-current" strokeWidth="1.4" opacity=".45" />
       ))}
 
-      <circle cx="96" cy="52" r="11" fill="none" className="stroke-emerald-600/50" strokeWidth="1" />
-      <path d="M96 45 L102 52 L96 59 L90 52 Z" className="fill-emerald-600" />
-      <text x="96" y="36" textAnchor="middle" className="fill-emerald-600 text-[7px] font-bold">YOU</text>
+      <circle cx="122" cy="62" r="11" fill="none" className="stroke-emerald-600/50" strokeWidth="1" />
+      <path d="M122 54 L129 62 L122 70 L115 62 Z" className="fill-emerald-600" />
+      <text x="122" y="46" textAnchor="middle" className="fill-emerald-600 text-[7px] font-bold">YOU</text>
 
       <text x="66" y="166" className="fill-current text-[7px]" opacity=".55">how you buy it →</text>
       <text x="58" y="26" textAnchor="end" className="fill-current text-[7px]" opacity=".55">what it does</text>
