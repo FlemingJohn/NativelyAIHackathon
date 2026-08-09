@@ -7,6 +7,7 @@ import { IdeationIcon } from "../components/ui/icons";
 import {
   Bar,
   BarField,
+  BarAction,
   buttonClass,
   ErrorNote,
   MarkCard,
@@ -110,9 +111,13 @@ export default function IdeaPage() {
                 placeholder="5 years in payments infra"
               />
             </BarField>
-            <button type="submit" className={buttonClass} disabled={loading || !profile}>
+            <BarAction>
+
+              <button type="submit" className={buttonClass} disabled={loading || !profile}>
               {loading ? "Searching…" : "Generate ideas"}
-            </button>
+              </button>
+
+            </BarAction>
           </Bar>
           {error && (
             <div className="mt-3">

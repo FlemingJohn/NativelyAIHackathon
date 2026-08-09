@@ -7,6 +7,7 @@ import { CANDIDATE_WORDS, Score } from "../components/ui/score";
 import {
   Bar,
   BarField,
+  BarAction,
   buttonClass,
   ErrorNote,
   MarkCard,
@@ -108,9 +109,13 @@ export default function CofounderPage() {
                 required
               />
             </BarField>
-            <button type="submit" className={buttonClass} disabled={loading || !profile}>
+            <BarAction>
+
+              <button type="submit" className={buttonClass} disabled={loading || !profile}>
               {loading ? "Searching…" : "Search"}
-            </button>
+              </button>
+
+            </BarAction>
           </Bar>
           {error && (
             <div className="mt-3">

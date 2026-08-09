@@ -52,8 +52,22 @@ export function ModulePage({
 }
 
 /** Inputs laid out horizontally, wrapping on narrow screens. */
+/**
+ * Inputs laid out horizontally, wrapping on narrow screens.
+ *
+ * Alignment note: every field renders the same three rows — label, control,
+ * hint — even when the label or hint is empty. Without that, a field carrying a
+ * hint is taller than one that isn't, and under `items-end` its input gets
+ * pushed up while the others sit at the bottom, so the row of inputs no longer
+ * lines up. Reserving the rows is what keeps them on one line.
+ */
 export function Bar({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-end gap-3">{children}</div>;
+  return <div className="flex flex-wrap items-start gap-3">{children}</div>;
+}
+
+/** Occupies a row so empty labels and hints still take their space. */
+function Spacer() {
+  return <>&nbsp;</>;
 }
 
 export function BarField({
@@ -62,19 +76,37 @@ export function BarField({
   grow,
   children,
 }: {
-  label: string;
+  label?: string;
   hint?: string;
   grow?: boolean;
   children: ReactNode;
 }) {
   return (
     <label className={`flex flex-col gap-1 ${grow ? "min-w-[220px] flex-1" : ""}`}>
-      <span className="font-mono text-[10px] tracking-wider text-zinc-500 uppercase">
-        {label}
+      <span className="font-mono text-[10px] leading-4 tracking-wider text-zinc-500 uppercase">
+        {label || <Spacer />}
       </span>
       {children}
-      {hint && <span className="text-[11px] text-zinc-500">{hint}</span>}
+      <span className="text-[11px] leading-4 text-zinc-500">{hint || <Spacer />}</span>
     </label>
+  );
+}
+
+/**
+ * The submit button, sharing the field rhythm so it lands on the same line as
+ * the inputs rather than below them.
+ */
+export function BarAction({ children }: { children: ReactNode }) {
+  return (
+    <span className="flex flex-col gap-1">
+      <span className="font-mono text-[10px] leading-4" aria-hidden="true">
+        &nbsp;
+      </span>
+      {children}
+      <span className="text-[11px] leading-4" aria-hidden="true">
+        &nbsp;
+      </span>
+    </span>
   );
 }
 

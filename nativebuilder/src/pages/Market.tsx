@@ -6,6 +6,7 @@ import { EvidenceMark, FieldMark, NestedMarketMark, TrendMark } from "../compone
 import {
   Bar,
   BarField,
+  BarAction,
   buttonClass,
   ErrorNote,
   inputClass,
@@ -153,9 +154,13 @@ export default function MarketPage() {
                 required
               />
             </BarField>
-            <button type="submit" className={buttonClass} disabled={loading || !profile}>
+            <BarAction>
+
+              <button type="submit" className={buttonClass} disabled={loading || !profile}>
               {loading ? "Researching…" : "Research market"}
-            </button>
+              </button>
+
+            </BarAction>
           </Bar>
           {error && (
             <div className="mt-3">
