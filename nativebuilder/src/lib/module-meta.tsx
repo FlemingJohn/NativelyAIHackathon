@@ -62,7 +62,7 @@ export const MODULES: ModuleMeta[] = [
     icon: MarketIcon,
     preview: MarketPreview,
     output: "One market report",
-    fields: ["TAM", "SAM", "SOM", "Method", "Competitors", "KPIs"],
+    fields: ["TAM", "SAM", "SOM", "Method", "Competitors", "KPIs", "Positioning map"],
     done: (p) => Boolean(p?.idea_text),
     locked: () => false,
     summary: (p) => (p?.idea_text ? "Idea sized" : "Not started"),

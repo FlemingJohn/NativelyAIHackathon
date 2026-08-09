@@ -1,8 +1,7 @@
 -- ============================================================================
--- One Place for Startups -- Supabase schema
+-- Venture Foundry -- Supabase schema
 -- Paste this whole file into: Supabase dashboard -> SQL Editor -> New query -> Run
 -- ============================================================================
--- Mirrors the Drizzle schema from the Express backend.
 --
 -- SECURITY: the browser never touches these tables. Every read and write goes
 -- through an Edge Function using the service-role key, which bypasses RLS. So
@@ -42,6 +41,8 @@ create table if not exists public.idea_cards (
   solution         text        not null,
   why_now          text        not null,
   business_model   text        not null,
+  fit_score        integer     not null default 0,
+  score_breakdown  jsonb       not null default '[]'::jsonb,
   source_citations jsonb       not null default '[]'::jsonb,
   created_at       timestamptz not null default now()
 );
@@ -56,6 +57,7 @@ create table if not exists public.market_reports (
   competitors       jsonb       not null default '[]'::jsonb,
   kpis              jsonb       not null default '[]'::jsonb,
   source_citations  jsonb       not null default '[]'::jsonb,
+  positioning       jsonb       not null default '{}'::jsonb,
   created_at        timestamptz not null default now()
 );
 
@@ -66,6 +68,9 @@ create table if not exists public.cofounder_matches (
   headline        text,
   profile_url     text,
   match_rationale text        not null,
+  fit_score       integer     not null default 0,
+  fit_level       text        not null default 'unknown',
+  score_breakdown jsonb       not null default '[]'::jsonb,
   skill_tags      jsonb       not null default '[]'::jsonb,
   created_at      timestamptz not null default now()
 );

@@ -110,6 +110,38 @@ Bounded on purpose: URLs deduped and capped at 8, dataset polling budgeted at
 90s, everything cached by query. A dataset job that outruns its budget degrades
 to the SERP results instead of failing the request.
 
+## The competitor map — where the model does real work
+
+Market draws your competitors on a picture, with your idea placed among them.
+The interesting part isn't the dots. **Nothing in the research names the two
+axes** — the model has to read every competitor description and work out which
+two questions actually separate that market.
+
+They come out completely different each time. Both of these are real output:
+
+```
+"A carbon-accounting API for mid-size logistics companies"
+  →  Solution Integration   standalone software ── API integration
+     Industry Focus         general enterprise ── logistics-specific
+
+"A command-line tool that finds slow Postgres queries"
+  →  Ease of Use            manual setup ── user-friendly interface
+     Database Focus         general-purpose ── specialised tuning
+```
+
+Four questions, no overlap. A carbon market splits on integration and vertical;
+a developer tool splits on setup effort and scope. There are thousands of
+markets, each with its own pair — so there is no table to look them up in. That
+is what makes this a model's job rather than a lookup.
+
+Your idea is scored on the same two questions, quoting something it actually
+says, and the emptiest quadrant is marked. The empty corner is presented as a
+question, not an opportunity — it may be empty because nothing works there.
+
+Three parts of that are the model (derive the axes, place the competitors with a
+reason each, place your idea). The empty quadrant is arithmetic and the drawing
+is ordinary code.
+
 ## How we use AI/ML API
 
 One key, two models, chosen per pass:
@@ -213,7 +245,7 @@ npm run build
 | `GET /functions/v1/profile/:id/full` | — | profile + all saved results |
 | `PATCH /functions/v1/profile/:id` | partial profile | profile |
 | `POST /functions/v1/idea` | `{profile_id, domain, interests}` | `{idea_cards, sourced_via}` |
-| `POST /functions/v1/market` | `{profile_id, idea_text}` | `{market_report, sourced_via}` |
+| `POST /functions/v1/market` | `{profile_id, idea_text}` | `{market_report, sourced_via}` — the report carries `positioning` |
 | `POST /functions/v1/cofounder` | `{profile_id, founder_profile, desired_complement}` | `{matches, sourced_via, profiles_enriched}` |
 | `POST /functions/v1/investor` | `{profile_id}` | `{leads, sourced_via}` |
 

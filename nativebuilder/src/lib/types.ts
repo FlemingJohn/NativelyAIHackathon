@@ -27,6 +27,17 @@ export type IdeaCard = {
   source_citations: string[];
 };
 
+/** Competitors and this idea placed on two questions the model worked out from
+ * the competitor descriptions. Absent when the research was too thin to place
+ * at least two competitors — the UI then shows nothing rather than half a chart. */
+export type Positioning = {
+  summary: string;
+  x_axis: { name: string; low: string; high: string };
+  y_axis: { name: string; low: string; high: string };
+  you: { x: number; y: number; why: string };
+  competitors: { name: string; x: number; y: number; why_x: string; why_y: string }[];
+};
+
 export type MarketReport = {
   id: string;
   tam: string | null;
@@ -36,6 +47,7 @@ export type MarketReport = {
   competitors: { name: string; summary: string; url?: string }[];
   kpis: { name: string; why_it_matters: string }[];
   source_citations: string[];
+  positioning?: Positioning | Record<string, never>;
 };
 
 export type CofounderMatch = {

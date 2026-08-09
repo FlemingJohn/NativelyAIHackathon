@@ -11,6 +11,7 @@ import {
 import { Logo, LogoMark } from "../components/ui/logo";
 import {
   CofounderPreview,
+  PositioningPreview,
   IdeaPreview,
   InvestorPreview,
   MarketPreview,
@@ -70,6 +71,16 @@ const features: Feature[] = [
     detail:
       "TAM, SAM and SOM with the method written next to them, plus the competitors it actually found and KPIs picked for your business model — not a generic list.",
     preview: MarketPreview,
+  },
+  {
+    n: "02b",
+    name: "Competitors",
+    href: "/market",
+    icon: MarketIcon,
+    claim: "See who else is doing this",
+    detail:
+      "Your competitors on a picture, and you among them. The two questions the picture asks are different for every industry — nothing in the research names them, so they are worked out from what the competitors actually say about themselves.",
+    preview: PositioningPreview,
   },
   {
     n: "03",

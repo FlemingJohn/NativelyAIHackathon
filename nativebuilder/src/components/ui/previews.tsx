@@ -95,6 +95,36 @@ export function IdeaPreview({ className }: PreviewProps) {
   );
 }
 
+/** Competitors scattered on two axes with one mark standing apart — the shape
+ * of the positioning map, at thumbnail size. */
+export function PositioningPreview({ className }: PreviewProps) {
+  const dots = [
+    [104, 58], [148, 44], [186, 74], [122, 108], [206, 116], [166, 132],
+  ];
+  return (
+    <svg {...frame} className={className} aria-label="Competitor positioning preview">
+      <line x1="66" y1="26" x2="66" y2="150" className="stroke-current opacity-25" strokeWidth="1" />
+      <line x1="66" y1="150" x2="300" y2="150" className="stroke-current opacity-25" strokeWidth="1" />
+
+      <rect x="72" y="30" width="86" height="52" rx="4"
+            className="fill-amber-500/10 stroke-amber-500/50" strokeWidth="1" strokeDasharray="3 3" />
+      <text x="80" y="46" className="fill-current text-[7px]" opacity=".6">nobody here</text>
+
+      {dots.map(([cx, cy], i) => (
+        <circle key={i} cx={cx} cy={cy} r="4.5"
+                className="fill-transparent stroke-current" strokeWidth="1.4" opacity=".45" />
+      ))}
+
+      <circle cx="96" cy="52" r="11" fill="none" className="stroke-emerald-600/50" strokeWidth="1" />
+      <path d="M96 45 L102 52 L96 59 L90 52 Z" className="fill-emerald-600" />
+      <text x="96" y="36" textAnchor="middle" className="fill-emerald-600 text-[7px] font-bold">YOU</text>
+
+      <text x="66" y="166" className="fill-current text-[7px]" opacity=".55">how you buy it →</text>
+      <text x="58" y="26" textAnchor="end" className="fill-current text-[7px]" opacity=".55">what it does</text>
+    </svg>
+  );
+}
+
 export function MarketPreview({ className }: PreviewProps) {
   const metrics = [
     { label: "TAM", value: "$73.8B", x: 8 },

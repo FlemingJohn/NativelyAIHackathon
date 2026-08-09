@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { Explain, MethodDiagram, NestedMarketDiagram } from "../components/ui/explain";
 import { MarketIcon } from "../components/ui/icons";
+import { PositioningMap } from "../components/ui/positioning";
 import { EvidenceMark, FieldMark, NestedMarketMark, TrendMark } from "../components/ui/marks";
 import {
   Bar,
@@ -17,7 +18,7 @@ import {
 import { Provenance } from "../components/ui/provenance";
 import { api, type MarketReport } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
-import type { SourcedVia } from "../lib/types";
+import type { Positioning, SourcedVia } from "../lib/types";
 import { useSaved } from "../lib/use-saved";
 
 /** Pulls the first number + unit out of a model-written string like
@@ -32,6 +33,11 @@ function parseMoney(text: string | null): number | null {
   const unit = (m[2] ?? "").toLowerCase();
   const mult = unit.startsWith("t") ? 1e12 : unit.startsWith("b") ? 1e9 : unit.startsWith("m") ? 1e6 : 1;
   return n * mult;
+}
+
+/** The column defaults to {} when the research was too thin to place anyone. */
+function hasPositioning(p: MarketReport["positioning"]): p is Positioning {
+  return Boolean(p && "competitors" in p && Array.isArray(p.competitors) && p.competitors.length >= 2);
 }
 
 const TERMS = {
@@ -189,6 +195,10 @@ export default function MarketPage() {
           />
 
           <MarketFigure report={report} />
+
+          {hasPositioning(report.positioning) && (
+            <PositioningMap pos={report.positioning} />
+          )}
 
           {report.methodology_notes && (
             <div className="rounded-lg border border-black/10 bg-black/[0.015] p-4 dark:border-white/10 dark:bg-white/[0.02]">
