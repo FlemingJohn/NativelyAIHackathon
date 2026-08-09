@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 
-import { Nav } from "./components/Nav";
+import { Sidebar } from "./components/Sidebar";
 import { ProfileProvider } from "./lib/profile-context";
 import { RouterProvider, useRouter } from "./lib/router";
 import Cofounder from "./pages/Cofounder";
@@ -28,9 +28,9 @@ function Shell() {
   }
 
   return (
-    <div className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
-      <Nav />
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
+    <div className="min-h-screen bg-zinc-50 lg:flex dark:bg-black">
+      <Sidebar />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 sm:px-8 lg:py-10">
         {path === "/dashboard" && <Dashboard />}
         {path === "/idea" && <Idea />}
         {path === "/market" && <Market />}

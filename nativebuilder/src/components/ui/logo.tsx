@@ -1,10 +1,11 @@
 /**
- * The mark: four strands entering at different heights and converging into a
- * single spine. That is literally what the product does -- four research
- * modules writing into one shared startup profile -- so the logo carries the
- * architecture rather than decorating it.
+ * The mark: an aperture built from four blades around a single focal point.
  *
- * Drawn on a 24x24 grid with a 2px stroke so it stays legible at favicon size.
+ * Four blades, one focus — four research modules resolving into one startup
+ * file. An aperture also happens to be the right metaphor for what the product
+ * does to a vague idea: it brings it into focus.
+ *
+ * Drawn on a 24x24 grid; the blade gaps stay open down to 16px.
  */
 
 export function LogoMark({ className = "h-6 w-6" }: { className?: string }) {
@@ -15,18 +16,14 @@ export function LogoMark({ className = "h-6 w-6" }: { className?: string }) {
       stroke="currentColor"
       strokeWidth="1.75"
       strokeLinecap="round"
-      strokeLinejoin="round"
       className={className}
       aria-hidden="true"
     >
-      {/* four strands, converging left to right */}
-      <path d="M2 4h5c2.2 0 3.4 1.4 4 3.2" />
-      <path d="M2 9.3h3.5c2 0 3 1 3.6 2.2" />
-      <path d="M2 14.7h3.5c2 0 3 -1 3.6 -2.2" />
-      <path d="M2 20h5c2.2 0 3.4 -1.4 4 -3.2" />
-      {/* the spine they converge into */}
-      <path d="M13 12h9" />
-      <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M19.9 12.7A8 8 0 0 1 12.7 19.9" />
+      <path d="M11.3 19.9A8 8 0 0 1 4.1 12.7" />
+      <path d="M4.1 11.3A8 8 0 0 1 11.3 4.1" />
+      <path d="M12.7 4.1A8 8 0 0 1 19.9 11.3" />
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
     </svg>
   );
 }

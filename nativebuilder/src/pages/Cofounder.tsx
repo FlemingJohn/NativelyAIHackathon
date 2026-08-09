@@ -1,5 +1,15 @@
 import { useState } from "react";
 
+import { PeopleIcon, SourceIcon } from "../components/ui/icons";
+import {
+  buttonClass,
+  ErrorNote,
+  Field,
+  inputClass,
+  ModulePage,
+  Placeholder,
+  selectClass,
+} from "../components/ui/page";
 import { api, type CofounderMatch } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
 
@@ -32,89 +42,134 @@ export default function CofounderPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Cofounder Search</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Tell us about yourself and what you&apos;re missing. We&apos;ll look for a complementary match, not a mirror.
-        </p>
-      </div>
+    <ModulePage
+      icon={<PeopleIcon className="h-6 w-6" />}
+      eyebrow="Section 03"
+      title="Cofounder Search"
+      lede="You name what you're strong at and what's missing. Candidates have to justify the gap they close, so you get a counterpart rather than another version of yourself."
+      form={
+        <form onSubmit={onSubmit}>
+          <Field label="Your background">
+            <select
+              className={selectClass}
+              value={background}
+              onChange={(e) => setBackground(e.target.value)}
+            >
+              <option value="technical">Technical</option>
+              <option value="business">Business</option>
+              <option value="design">Design</option>
+            </select>
+          </Field>
+          <Field label="Your skills" hint="Comma separated.">
+            <input
+              className={inputClass}
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              placeholder="e.g. backend, ML, infra"
+            />
+          </Field>
+          <Field label="Who you're looking for">
+            <textarea
+              className={inputClass}
+              value={desiredComplement}
+              onChange={(e) => setDesiredComplement(e.target.value)}
+              placeholder="e.g. a GTM cofounder with fintech sales experience"
+              rows={3}
+              required
+            />
+          </Field>
+          <button type="submit" className={buttonClass} disabled={loading || !profile}>
+            {loading ? "Searching…" : "Search cofounders"}
+          </button>
+          {error && (
+            <div className="mt-3">
+              <ErrorNote>{error}</ErrorNote>
+            </div>
+          )}
+        </form>
+      }
+    >
+      {!matches && !loading && (
+        <Placeholder>Say what you&apos;re missing and we&apos;ll go looking for it.</Placeholder>
+      )}
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Your background
-          <select
-            className="rounded border border-black/10 dark:border-white/10 bg-transparent px-3 py-2"
-            value={background}
-            onChange={(e) => setBackground(e.target.value)}
-          >
-            <option value="technical">Technical</option>
-            <option value="business">Business</option>
-            <option value="design">Design</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Your skills (comma separated)
-          <input
-            className="rounded border border-black/10 dark:border-white/10 bg-transparent px-3 py-2"
-            value={skills}
-            onChange={(e) => setSkills(e.target.value)}
-            placeholder="e.g. backend, ML, infra"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Who you&apos;re looking for
-          <input
-            className="rounded border border-black/10 dark:border-white/10 bg-transparent px-3 py-2"
-            value={desiredComplement}
-            onChange={(e) => setDesiredComplement(e.target.value)}
-            placeholder="e.g. a business/GTM cofounder with fintech sales experience"
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading || !profile}
-          className="self-start rounded bg-black text-white dark:bg-white dark:text-black px-4 py-2 text-sm font-medium disabled:opacity-50"
-        >
-          {loading ? "Searching…" : "Search cofounders"}
-        </button>
-      </form>
+      {loading && (
+        <div className="flex flex-col gap-4">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-32 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]"
+            />
+          ))}
+        </div>
+      )}
 
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-      {matches && (
+      {matches && !loading && (
         <div className="flex flex-col gap-4">
           {matches.length === 0 && (
-            <p className="text-sm text-zinc-500">
-              No candidates found. Public search results describe cofounder matching rather than
-              listing people — reaching real profiles needs the LinkedIn people-search dataset,
-              which isn&apos;t connected yet.
-            </p>
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-5 text-sm">
+              <p className="font-medium text-amber-700 dark:text-amber-400">
+                No named candidates came back
+              </p>
+              <p className="mt-1.5 text-zinc-600 dark:text-zinc-400">
+                Public search results describe cofounder matching rather than listing people.
+                Reaching real profiles needs the LinkedIn people-search dataset, which isn&apos;t
+                connected yet — so the model was told to return nothing rather than invent names.
+              </p>
+            </div>
           )}
-          {matches.map((m) => (
-            <div key={m.id} className="rounded-lg border border-black/10 dark:border-white/10 p-5">
-              <p className="font-medium">{m.name}</p>
-              {m.headline && <p className="text-sm text-zinc-600 dark:text-zinc-400">{m.headline}</p>}
-              <p className="mt-2 text-sm">{m.match_rationale}</p>
+          {matches.map((m, i) => (
+            <article
+              key={m.id}
+              className="rounded-lg border border-black/10 p-5 dark:border-white/10"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="font-medium">{m.name}</h2>
+                  {m.headline && (
+                    <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-400">
+                      {m.headline}
+                    </p>
+                  )}
+                </div>
+                <span className="shrink-0 font-mono text-[11px] text-zinc-400 dark:text-zinc-600">
+                  CAND-{String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
+
+              <div className="mt-4 border-t border-black/5 pt-3 dark:border-white/5">
+                <p className="text-xs text-zinc-500">Covers your gap</p>
+                <p className="mt-0.5 text-sm">{m.match_rationale}</p>
+              </div>
+
               {m.skill_tags?.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   {m.skill_tags.map((tag) => (
-                    <span key={tag} className="text-xs rounded-full border border-black/10 dark:border-white/10 px-2 py-0.5">
+                    <span
+                      key={tag}
+                      className="rounded-full border border-black/10 px-2.5 py-0.5 text-xs text-zinc-500 dark:border-white/10"
+                    >
                       {tag}
                     </span>
                   ))}
                 </div>
               )}
+
               {m.profile_url && (
-                <a href={m.profile_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs underline text-zinc-500">
-                  {m.profile_url}
+                <a
+                  href={m.profile_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-black dark:hover:text-white"
+                >
+                  <SourceIcon className="h-3 w-3" />
+                  <span className="truncate">{m.profile_url.replace(/^https?:\/\//, "")}</span>
                 </a>
               )}
-            </div>
+            </article>
           ))}
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }

@@ -83,16 +83,45 @@ Every one runs the same three steps, server-side:
 The profile is the spine: Idea writes `domain`, Market writes `idea_text`,
 Investor reads both back and refuses with a clear message if `domain` is unset.
 
+## Bright Data
+
+Set `BRIGHTDATA_API_TOKEN` and the search layer switches provider — every
+module calls `searchEngine`, so nothing else changes. Responses report which
+provider served them in `sourced_via`.
+
+| | Without a token | With a token |
+|---|---|---|
+| Search | DuckDuckGo HTML | Bright Data SERP API (parsed Google) |
+| `site:` filters | ignored | respected |
+| Blocking | rate-limited, often empty | handled server-side |
+| Cofounder search | returns nothing | LinkedIn profile records |
+
+**Cofounder search is the module that needs it.** With a token it runs two
+stages instead of one:
+
+1. **SERP API** with `site:linkedin.com/in <what you're missing> <domain>` →
+   real profile URLs. Google blocks the free fallback outright, which is why
+   `site:` queries were useless before.
+2. **LinkedIn Profiles dataset** (`gd_l1viktl72bvl7bjuj0`) on those URLs →
+   structured person records the model can reason over, instead of search
+   snippets that never named anyone.
+
+Spend control: profile URLs are deduped and capped at 5 per search, the
+dataset poll has a 60s budget, and results are cached in `scrape_cache` keyed
+by query — a repeat run costs nothing. If the dataset job outruns its budget
+the module degrades to the SERP results rather than failing.
+
 ## Two things worth knowing
 
 - **Fence stripping is load-bearing.** The fast model wraps JSON in ` ```json `
   fences; a bare `JSON.parse` swallows the whole extraction and synthesis then
   reasons over garbage. That single bug produced 0 investor leads and 0
   citations before it was found. See `parseJson` in `_shared/pipeline.ts`.
-- **Cofounder search often returns nothing.** Public search results describe
-  cofounder matching rather than listing people. Real candidates need the
-  LinkedIn people-search dataset (Bright Data), which isn't connected. The
-  model is told to return `[]` rather than invent names, and the UI says so.
+- **Cofounder search needs Bright Data.** Without a token it falls back to
+  DuckDuckGo, which returns articles *about* cofounder matching rather than
+  people, so the module comes back empty. The model is told to return `[]`
+  rather than invent names, and the UI explains why. See the Bright Data
+  section above.
 
 ## What changed from the Next.js version
 

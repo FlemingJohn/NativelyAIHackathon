@@ -15,7 +15,30 @@ import {
   InvestorPreview,
   MarketPreview,
 } from "../components/ui/previews";
+import { Reveal } from "../components/ui/reveal";
+import { ExtractStep, GatherStep, SynthesizeStep } from "../components/ui/steps";
 import { Link, type Route } from "../lib/router";
+
+const steps = [
+  {
+    n: "01",
+    title: "Gather",
+    body: "Live web search for the module's question. Results are cached, so a repeat run costs nothing.",
+    art: GatherStep,
+  },
+  {
+    n: "02",
+    title: "Extract",
+    body: "A fast model turns raw results into structured facts. Nothing downstream ever sees the raw HTML.",
+    art: ExtractStep,
+  },
+  {
+    n: "03",
+    title: "Synthesize",
+    body: "A stronger model reasons only over those facts, and writes the result into your file.",
+    art: SynthesizeStep,
+  },
+];
 
 type Feature = {
   n: string;
@@ -72,7 +95,7 @@ const features: Feature[] = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+    <div className="on-dark min-h-screen bg-zinc-950 text-zinc-100 antialiased">
       {/* ---------------------------------------------------------- hero --- */}
       <section className="relative min-h-screen overflow-hidden">
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -82,7 +105,7 @@ export default function Landing() {
         <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-zinc-950/80 via-zinc-950/40 to-zinc-950" />
 
         <div className="relative z-10 flex min-h-screen flex-col">
-          <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+          <header className="flex w-full items-center justify-between px-5 py-5 sm:px-8">
             <Logo className="text-sm" />
             <Link
               href="/dashboard"
@@ -92,10 +115,11 @@ export default function Landing() {
             </Link>
           </header>
 
-          <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-20">
-            <p className="mb-6 flex items-center gap-2 font-mono text-[11px] tracking-widest text-zinc-500 uppercase">
+          <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 py-20 text-center sm:px-8">
+            <p className="mb-6 flex items-center gap-3 font-mono text-[11px] tracking-widest text-zinc-500 uppercase">
               <span className="h-px w-8 bg-zinc-700" />
               Four modules · one shared file
+              <span className="h-px w-8 bg-zinc-700" />
             </p>
 
             <h1 className="max-w-4xl text-5xl leading-[1.02] font-semibold tracking-tight text-balance sm:text-7xl">
@@ -105,13 +129,13 @@ export default function Landing() {
               a file you can defend
             </h1>
 
-            <p className="mt-7 max-w-xl text-sm leading-relaxed text-zinc-400">
+            <p className="mt-7 max-w-xl text-sm leading-relaxed text-balance text-zinc-400">
               Most AI tools answer from memory. This one searches the live web first, extracts
               the facts, then reasons — so every number and every name arrives with the source
               it came from.
             </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/dashboard"
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-200"
@@ -127,9 +151,9 @@ export default function Landing() {
               </Link>
             </div>
 
-            <dl className="mt-24 grid gap-x-8 gap-y-7 border-t border-white/10 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+            <dl className="mt-24 grid w-full gap-x-8 gap-y-7 border-t border-white/10 pt-8 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((f) => (
-                <div key={f.n}>
+                <div key={f.n} className="flex flex-col items-center">
                   <dt className="flex items-center gap-2 text-sm font-medium">
                     <f.icon className="h-4 w-4 text-zinc-500" />
                     {f.name}
@@ -144,24 +168,26 @@ export default function Landing() {
 
       {/* ------------------------------------------------- how it works --- */}
       <section className="border-t border-white/10 bg-zinc-950">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Every module runs the same three steps
-          </h2>
-          <p className="mt-2 max-w-lg text-sm text-zinc-500">
-            It's the reason the answers hold up: the model never gets to invent the evidence.
-          </p>
+        <div className="mx-auto max-w-6xl px-6 py-24 sm:px-8">
+          <Reveal>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Every module runs the same three steps
+            </h2>
+            <p className="mt-2 max-w-lg text-sm text-zinc-500">
+              It&apos;s the reason the answers hold up: the model never gets to invent the
+              evidence.
+            </p>
+          </Reveal>
 
-          <ol className="mt-10 grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-3">
-            {[
-              ["Gather", "Live web search for the module's question. Results are cached, so a repeat run costs nothing."],
-              ["Extract", "A fast model turns raw results into structured facts. Nothing else sees the raw HTML."],
-              ["Synthesize", "A stronger model reasons only over those facts, and writes the result into your file."],
-            ].map(([title, body], i) => (
-              <li key={title} className="bg-zinc-950 p-6">
-                <span className="font-mono text-[11px] text-zinc-600">0{i + 1}</span>
-                <h3 className="mt-2 text-sm font-medium">{title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">{body}</p>
+          <ol className="mt-12 grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-3">
+            {steps.map((s, i) => (
+              <li key={s.n} className="bg-zinc-950 p-6">
+                <Reveal delay={i * 120}>
+                  <s.art className="h-16 w-full text-zinc-400" />
+                  <span className="mt-5 block font-mono text-[11px] text-zinc-600">{s.n}</span>
+                  <h3 className="mt-1.5 text-sm font-medium">{s.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">{s.body}</p>
+                </Reveal>
               </li>
             ))}
           </ol>
@@ -170,53 +196,62 @@ export default function Landing() {
 
       {/* ----------------------------------------------------- features --- */}
       <section className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-2xl font-semibold tracking-tight">What you get back</h2>
-          <p className="mt-2 max-w-lg text-sm text-zinc-500">
-            Each module writes into the same startup profile, so the next one starts where the
-            last one finished.
-          </p>
+        <div className="mx-auto max-w-6xl px-6 py-24 sm:px-8">
+          <Reveal>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              What you get back
+            </h2>
+            <p className="mt-2 max-w-lg text-sm text-zinc-500">
+              Each module writes into the same startup profile, so the next one starts where the
+              last one finished.
+            </p>
+          </Reveal>
 
-          <div className="mt-12 flex flex-col gap-14">
-            {features.map((f, i) => (
-              <article
-                key={f.n}
-                className="grid items-center gap-8 md:grid-cols-2 md:gap-14"
-              >
-                <div className={i % 2 === 1 ? "md:order-2" : undefined}>
-                  <p className="flex items-center gap-2 font-mono text-[11px] tracking-widest text-zinc-600 uppercase">
-                    {f.n}
-                    <span className="h-px w-6 bg-zinc-800" />
-                    {f.name}
-                  </p>
-                  <h3 className="mt-3 flex items-center gap-2.5 text-xl font-medium tracking-tight">
-                    <f.icon className="h-5 w-5 text-zinc-400" />
-                    {f.claim}
-                  </h3>
-                  <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
-                    {f.detail}
-                  </p>
-                  <Link
-                    href={f.href}
-                    className="group mt-5 inline-flex items-center gap-1.5 text-sm text-zinc-300 transition-colors hover:text-white"
+          <div className="mt-16 flex flex-col gap-20">
+            {features.map((f, i) => {
+              const flipped = i % 2 === 1;
+              return (
+                <article key={f.n} className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
+                  <Reveal
+                    from={flipped ? "right" : "left"}
+                    className={flipped ? "md:order-2" : undefined}
                   >
-                    Try {f.name.toLowerCase()}
-                    <ArrowIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
+                    <p className="flex items-center gap-2 font-mono text-[11px] tracking-widest text-zinc-600 uppercase">
+                      {f.n}
+                      <span className="h-px w-6 bg-zinc-800" />
+                      {f.name}
+                    </p>
+                    <h3 className="mt-3 flex items-center gap-2.5 text-xl font-medium tracking-tight">
+                      <f.icon className="h-5 w-5 text-zinc-400" />
+                      {f.claim}
+                    </h3>
+                    <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
+                      {f.detail}
+                    </p>
+                    <Link
+                      href={f.href}
+                      className="group mt-5 inline-flex items-center gap-1.5 text-sm text-zinc-300 transition-colors hover:text-white"
+                    >
+                      Try {f.name.toLowerCase()}
+                      <ArrowIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </Reveal>
 
-                <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-zinc-300">
-                  <f.preview className="w-full" />
-                </div>
-              </article>
-            ))}
+                  <Reveal from={flipped ? "left" : "right"} delay={120}>
+                    <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-zinc-300">
+                      <f.preview className="w-full" />
+                    </div>
+                  </Reveal>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* --------------------------------------------------------- foot --- */}
       <footer className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
             <LogoMark className="h-4 w-4" />
             One Place for Startups

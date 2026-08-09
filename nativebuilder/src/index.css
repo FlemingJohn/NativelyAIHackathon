@@ -23,6 +23,49 @@ body,
   height: 100%;
 }
 
+/* Selection followed the browser default (a blue that belongs to no part of
+   this UI). Match the primary action instead: ink on light, inverted on dark. */
+::selection {
+  background: #18181b;
+  color: #fafafa;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::selection {
+    background: #fafafa;
+    color: #09090b;
+  }
+}
+
+/* The landing page is dark regardless of system theme, so it opts out. */
+.on-dark ::selection {
+  background: #fafafa;
+  color: #09090b;
+}
+
+/* ---------------------------------------------------------------- select ---
+   Native selects don't inherit the surrounding theme: the closed control can be
+   styled, but the dropdown list is drawn by the OS and needs its colours stated
+   outright, or dark mode renders dark text on a dark list. */
+.select-field {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1rem;
+}
+
+.select-field option {
+  background-color: #ffffff;
+  color: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  .select-field option {
+    background-color: #18181b;
+    color: #ededed;
+  }
+}
+
 body {
   margin: 0;
   background: var(--background);

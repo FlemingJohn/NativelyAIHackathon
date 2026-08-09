@@ -1,5 +1,14 @@
 import { useState } from "react";
 
+import { MarketIcon, SourceIcon } from "../components/ui/icons";
+import {
+  buttonClass,
+  ErrorNote,
+  Field,
+  inputClass,
+  ModulePage,
+  Placeholder,
+} from "../components/ui/page";
 import { api, type MarketReport } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
 
@@ -27,38 +36,53 @@ export default function MarketPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Market Research</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Describe your idea in a line or two. We&apos;ll estimate TAM/SAM/SOM, find competitors, and suggest KPIs.
-        </p>
-      </div>
+    <ModulePage
+      icon={<MarketIcon className="h-6 w-6" />}
+      eyebrow="Section 02"
+      title="Market Research"
+      lede="Reads competitor pages and market-size mentions, then estimates TAM, SAM and SOM with the method spelled out — so you can argue with the numbers rather than take them on faith."
+      form={
+        <form onSubmit={onSubmit}>
+          <Field label="Your idea" hint="One or two sentences: what it is, and who for.">
+            <textarea
+              className={inputClass}
+              value={ideaText}
+              onChange={(e) => setIdeaText(e.target.value)}
+              placeholder="e.g. A carbon-accounting API for mid-size logistics companies"
+              rows={5}
+              required
+            />
+          </Field>
+          <button type="submit" className={buttonClass} disabled={loading || !profile}>
+            {loading ? "Researching…" : "Research market"}
+          </button>
+          {error && (
+            <div className="mt-3">
+              <ErrorNote>{error}</ErrorNote>
+            </div>
+          )}
+        </form>
+      }
+    >
+      {!report && !loading && (
+        <Placeholder>Describe the idea and we&apos;ll size the opportunity.</Placeholder>
+      )}
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Your idea
-          <textarea
-            className="rounded border border-black/10 dark:border-white/10 bg-transparent px-3 py-2"
-            value={ideaText}
-            onChange={(e) => setIdeaText(e.target.value)}
-            placeholder="e.g. A carbon-accounting API for mid-size logistics companies"
-            rows={3}
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading || !profile}
-          className="self-start rounded bg-black text-white dark:bg-white dark:text-black px-4 py-2 text-sm font-medium disabled:opacity-50"
-        >
-          {loading ? "Researching…" : "Research market"}
-        </button>
-      </form>
+      {loading && (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-24 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]"
+              />
+            ))}
+          </div>
+          <div className="h-48 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]" />
+        </div>
+      )}
 
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-      {report && (
+      {report && !loading && (
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-3 gap-4">
             {[
@@ -66,50 +90,92 @@ export default function MarketPage() {
               ["SAM", report.sam],
               ["SOM", report.som],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-black/10 dark:border-white/10 p-4">
-                <p className="text-xs text-zinc-500">{label}</p>
-                <p className="mt-1 font-medium">{value || "—"}</p>
+              <div
+                key={label}
+                className="rounded-lg border border-black/10 p-4 dark:border-white/10"
+              >
+                <p className="font-mono text-[11px] tracking-widest text-zinc-500">{label}</p>
+                <p className="mt-1 text-lg font-semibold tracking-tight">{value || "—"}</p>
               </div>
             ))}
           </div>
 
           {report.methodology_notes && (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{report.methodology_notes}</p>
+            <div className="rounded-lg border border-black/10 bg-black/[0.015] p-4 dark:border-white/10 dark:bg-white/[0.02]">
+              <p className="text-xs text-zinc-500">How it got there</p>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                {report.methodology_notes}
+              </p>
+            </div>
           )}
 
-          <div>
-            <h2 className="font-medium mb-2">Competitors</h2>
-            <div className="flex flex-col gap-2">
+          <section>
+            <h2 className="mb-3 text-sm font-medium">Competitors</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
               {report.competitors?.length ? (
-                report.competitors.map((c) => (
-                  <div key={c.name} className="rounded border border-black/10 dark:border-white/10 p-3 text-sm">
-                    <p className="font-medium">{c.name}</p>
-                    <p className="text-zinc-600 dark:text-zinc-400">{c.summary}</p>
+                report.competitors.map((c, i) => (
+                  <div
+                    key={`${c.name}-${i}`}
+                    className="rounded-lg border border-black/10 p-4 dark:border-white/10"
+                  >
+                    <p className="text-sm font-medium">{c.name}</p>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{c.summary}</p>
+                    {c.url && (
+                      <a
+                        href={c.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-black dark:hover:text-white"
+                      >
+                        <SourceIcon className="h-3 w-3" />
+                        <span className="truncate">{c.url.replace(/^https?:\/\//, "")}</span>
+                      </a>
+                    )}
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-zinc-500">No competitors found.</p>
+                <Placeholder>No competitors found.</Placeholder>
               )}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <h2 className="font-medium mb-2">Suggested KPIs</h2>
-            <ul className="flex flex-col gap-2">
+          <section>
+            <h2 className="mb-3 text-sm font-medium">Suggested KPIs</h2>
+            <ul className="divide-y divide-black/5 rounded-lg border border-black/10 dark:divide-white/5 dark:border-white/10">
               {report.kpis?.length ? (
-                report.kpis.map((k) => (
-                  <li key={k.name} className="text-sm">
-                    <span className="font-medium">{k.name}: </span>
-                    {k.why_it_matters}
+                report.kpis.map((k, i) => (
+                  <li key={`${k.name}-${i}`} className="p-4 text-sm">
+                    <span className="font-medium">{k.name}</span>
+                    <span className="mt-0.5 block text-zinc-600 dark:text-zinc-400">
+                      {k.why_it_matters}
+                    </span>
                   </li>
                 ))
               ) : (
-                <p className="text-sm text-zinc-500">No KPIs suggested.</p>
+                <li className="p-4 text-sm text-zinc-500">No KPIs suggested.</li>
               )}
             </ul>
-          </div>
+          </section>
+
+          {report.source_citations?.length > 0 && (
+            <ul className="flex flex-wrap gap-2">
+              {report.source_citations.map((url) => (
+                <li key={url}>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex max-w-[240px] items-center gap-1.5 rounded-full border border-black/10 px-2.5 py-1 text-xs text-zinc-500 hover:text-black dark:border-white/10 dark:hover:text-white"
+                  >
+                    <SourceIcon className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{url.replace(/^https?:\/\//, "")}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }

@@ -45,22 +45,22 @@ export function useRouter() {
 }
 
 /** Drop-in for next/link: keeps it a real anchor (middle-click, copy link
- * address) while routing client-side on a plain click. */
-export function Link({
-  href,
-  className,
-  children,
-}: {
+ * address) while routing client-side on a plain click. Passes through the rest
+ * of the anchor props, so `title`, `aria-label` and friends work as usual. */
+type LinkProps = Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   href: Route;
-  className?: string;
   children: ReactNode;
-}) {
+};
+
+export function Link({ href, children, onClick, ...rest }: LinkProps) {
   const { navigate } = useRouter();
   return (
     <a
+      {...rest}
       href={href}
-      className={className}
       onClick={(e) => {
+        onClick?.(e);
+        if (e.defaultPrevented) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
         e.preventDefault();
         navigate(href);

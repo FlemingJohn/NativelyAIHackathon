@@ -1,5 +1,14 @@
 import { useState } from "react";
 
+import { IdeationIcon, SourceIcon } from "../components/ui/icons";
+import {
+  buttonClass,
+  ErrorNote,
+  Field,
+  inputClass,
+  ModulePage,
+  Placeholder,
+} from "../components/ui/page";
 import { api, type IdeaCard } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
 
@@ -28,76 +37,109 @@ export default function IdeaPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Idea Brainstorming</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Tell us your domain and interests. We&apos;ll pull recent web signal and generate a few idea cards grounded in it.
-        </p>
-      </div>
+    <ModulePage
+      icon={<IdeationIcon className="h-6 w-6" />}
+      eyebrow="Section 01"
+      title="Idea Brainstorming"
+      lede="Searches live discussion in your domain, pulls out the complaints that keep repeating, and shapes them into ideas. Every “why now” traces back to a link you can open."
+      form={
+        <form onSubmit={onSubmit}>
+          <Field label="Domain / industry">
+            <input
+              className={inputClass}
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              placeholder="e.g. climate fintech"
+              required
+            />
+          </Field>
+          <Field label="Your expertise" hint="Optional — steers the ideas toward what you know.">
+            <textarea
+              className={inputClass}
+              value={interests}
+              onChange={(e) => setInterests(e.target.value)}
+              placeholder="e.g. 5 years in payments infra"
+              rows={3}
+            />
+          </Field>
+          <button type="submit" className={buttonClass} disabled={loading || !profile}>
+            {loading ? "Searching the web…" : "Generate ideas"}
+          </button>
+          {error && (
+            <div className="mt-3">
+              <ErrorNote>{error}</ErrorNote>
+            </div>
+          )}
+        </form>
+      }
+    >
+      {!cards && !loading && (
+        <Placeholder>Name a domain and we&apos;ll go looking for problems worth solving.</Placeholder>
+      )}
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Domain / industry
-          <input
-            className="rounded border border-black/10 dark:border-white/10 bg-transparent px-3 py-2"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="e.g. climate fintech"
-            required
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Interests / personal expertise (optional)
-          <textarea
-            className="rounded border border-black/10 dark:border-white/10 bg-transparent px-3 py-2"
-            value={interests}
-            onChange={(e) => setInterests(e.target.value)}
-            placeholder="e.g. I've worked in payments infra for 5 years"
-            rows={3}
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading || !profile}
-          className="self-start rounded bg-black text-white dark:bg-white dark:text-black px-4 py-2 text-sm font-medium disabled:opacity-50"
-        >
-          {loading ? "Generating…" : "Generate ideas"}
-        </button>
-      </form>
-
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-      {cards && (
+      {loading && (
         <div className="flex flex-col gap-4">
-          {cards.length === 0 && <p className="text-sm text-zinc-500">No idea cards came back — try a different domain.</p>}
-          {cards.map((card) => (
-            <div key={card.id} className="rounded-lg border border-black/10 dark:border-white/10 p-5">
-              <p className="font-medium">{card.problem}</p>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-36 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]"
+            />
+          ))}
+        </div>
+      )}
+
+      {cards && !loading && (
+        <div className="flex flex-col gap-4">
+          {cards.length === 0 && (
+            <Placeholder>No idea cards came back — try a different domain.</Placeholder>
+          )}
+          {cards.map((card, i) => (
+            <article
+              key={card.id}
+              className="rounded-lg border border-black/10 p-5 dark:border-white/10"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-medium">{card.problem}</h2>
+                <span className="shrink-0 font-mono text-[11px] text-zinc-400 dark:text-zinc-600">
+                  IDEA-{String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
               <p className="mt-2 text-sm">{card.solution}</p>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <span className="font-medium">Why now: </span>
-                {card.why_now}
-              </p>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <span className="font-medium">Business model: </span>
-                {card.business_model}
-              </p>
+
+              <dl className="mt-4 grid gap-3 border-t border-black/5 pt-3 text-sm sm:grid-cols-2 dark:border-white/5">
+                <div>
+                  <dt className="text-xs text-zinc-500">Why now</dt>
+                  <dd className="mt-0.5 text-zinc-600 dark:text-zinc-400">{card.why_now}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-zinc-500">Business model</dt>
+                  <dd className="mt-0.5 text-zinc-600 dark:text-zinc-400">
+                    {card.business_model}
+                  </dd>
+                </div>
+              </dl>
+
               {card.source_citations?.length > 0 && (
-                <ul className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-500">
+                <ul className="mt-4 flex flex-wrap gap-2 border-t border-black/5 pt-3 dark:border-white/5">
                   {card.source_citations.map((url) => (
-                    <li key={url} className="truncate max-w-[220px]">
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
-                        {url}
+                    <li key={url}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex max-w-[240px] items-center gap-1.5 rounded-full border border-black/10 px-2.5 py-1 text-xs text-zinc-500 transition-colors hover:text-black dark:border-white/10 dark:hover:text-white"
+                      >
+                        <SourceIcon className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{url.replace(/^https?:\/\//, "")}</span>
                       </a>
                     </li>
                   ))}
                 </ul>
               )}
-            </div>
+            </article>
           ))}
         </div>
       )}
-    </div>
+    </ModulePage>
   );
 }

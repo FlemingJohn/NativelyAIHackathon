@@ -10,7 +10,7 @@
 
 import { chat } from "./aiml.ts";
 import { db } from "./db.ts";
-import { searchEngine, type SearchResult } from "./search.ts";
+import { searchEngine, type Provider, type SearchResult } from "./search.ts";
 
 const SIGNAL_LIMIT = 8000;
 
@@ -39,7 +39,10 @@ async function cacheKey(toolName: string, query: string): Promise<string> {
 }
 
 /** Look up (toolName, query) in scrape_cache; run the search on a miss. */
-export async function cachedSearch(toolName: string, query: string): Promise<SearchResult[]> {
+export async function cachedSearch(
+  toolName: string,
+  query: string,
+): Promise<{ results: SearchResult[]; provider: Provider | "cache" }> {
   const key = await cacheKey(toolName, query);
 
   const { data: cached } = await db
@@ -48,14 +51,18 @@ export async function cachedSearch(toolName: string, query: string): Promise<Sea
     .eq("cache_key", key)
     .maybeSingle();
 
-  if (cached?.raw_response) return cached.raw_response as SearchResult[];
+  if (cached?.raw_response) {
+    return { results: cached.raw_response as SearchResult[], provider: "cache" };
+  }
 
-  const results = await searchEngine(query);
+  const { results, provider } = await searchEngine(query);
+  // tool_name records which provider paid for the row, so a cache built on the
+  // free fallback is distinguishable from one built on Bright Data.
   await db
     .from("scrape_cache")
-    .insert({ cache_key: key, tool_name: toolName, raw_response: results });
+    .insert({ cache_key: key, tool_name: `${toolName}:${provider}`, raw_response: results });
 
-  return results;
+  return { results, provider };
 }
 
 /** Truncated JSON of the raw signal, as handed to the extraction model. */

@@ -37,7 +37,7 @@ Deno.serve(
     if (payload.interests) query += ` ${payload.interests}`;
 
     // 1. gather
-    const results = await cachedSearch("search_engine", query);
+    const { results, provider } = await cachedSearch("search_engine", query);
 
     // 2. extract
     const facts = await extractFacts(
@@ -68,6 +68,6 @@ Deno.serve(
       })),
     );
 
-    return json({ idea_cards: saved });
+    return json({ idea_cards: saved, sourced_via: provider });
   }),
 );

@@ -35,7 +35,7 @@ Deno.serve(
     const ideaText: string = payload.idea_text ?? "";
 
     // 1. gather
-    const results = await cachedSearch(
+    const { results, provider } = await cachedSearch(
       "search_engine",
       `competitors AND market size: ${ideaText}`,
     );
@@ -70,6 +70,6 @@ Deno.serve(
       },
     ]);
 
-    return json({ market_report: saved });
+    return json({ market_report: saved, sourced_via: provider });
   }),
 );
