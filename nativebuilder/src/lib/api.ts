@@ -97,6 +97,7 @@ export const api = {
     request<{
       matches: CofounderMatch[];
       sourced_via: SourcedVia;
+      profiles_found: number;
       profiles_enriched: number;
     }>("/cofounder", {
       method: "POST",

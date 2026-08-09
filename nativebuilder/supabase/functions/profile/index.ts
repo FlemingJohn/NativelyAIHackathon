@@ -36,11 +36,11 @@ async function fullProfile(profileId: string) {
 
   const [ideas, reports, matches, leads] = await Promise.all([
     db.from("idea_cards").select("*").eq("profile_id", profileId)
-      .order("created_at", { ascending: false }).limit(5),
+      .order("created_at", { ascending: false }).order("fit_score", { ascending: false }).limit(5),
     db.from("market_reports").select("*").eq("profile_id", profileId)
       .order("created_at", { ascending: false }).limit(1),
     db.from("cofounder_matches").select("*").eq("profile_id", profileId)
-      .order("created_at", { ascending: false }).limit(5),
+      .order("created_at", { ascending: false }).order("fit_score", { ascending: false }).limit(10),
     db.from("investor_leads").select("*").eq("profile_id", profileId)
       .order("created_at", { ascending: false }).limit(5),
   ]);

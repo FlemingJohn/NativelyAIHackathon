@@ -18,6 +18,7 @@ export type IdeaCard = {
   solution: string;
   why_now: string;
   business_model: string;
+  fit_score: number;
   source_citations: string[];
 };
 
@@ -37,6 +38,10 @@ export type CofounderMatch = {
   name: string;
   headline: string | null;
   profile_url: string | null;
+  fit_score: number;
+  /** "strong" | "partial" | "none" — every candidate is returned, including
+   * the ones that don't fit, because why they don't is useful. */
+  fit_level: string;
   match_rationale: string;
   skill_tags: string[];
 };

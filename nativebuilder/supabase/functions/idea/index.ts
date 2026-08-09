@@ -10,16 +10,22 @@ import { cachedSearch, extractFacts, parseJson, signal, synthesize } from "../_s
 
 const SYSTEM_PROMPT = `You are a startup ideation assistant. Given a founder's \
 domain/interests and raw web signal (trending discussions, recent news), \
-produce 3-5 idea cards as a JSON array. Each item: {problem, solution, \
-why_now, business_model, source_citations: [urls actually used]}. Ground each \
-"why_now" in something from the provided signal, don't invent trends. Respond \
-with a JSON array only, no markdown fences.`;
+produce 3-5 idea cards as a JSON array, sorted strongest first. Each item:
+{problem, solution, why_now, business_model, fit_score, source_citations: [urls actually used]}
+
+  fit_score  0-100. How strongly the provided signal supports this being a real,
+             urgent problem — evidence, not your enthusiasm. An idea the signal
+             barely mentions scores low even if it sounds good.
+
+Ground each "why_now" in something from the provided signal; don't invent \
+trends. Respond with a JSON array only, no markdown fences.`;
 
 type RawCard = {
   problem?: string;
   solution?: string;
   why_now?: string;
   business_model?: string;
+  fit_score?: number;
   source_citations?: string[];
 };
 
@@ -58,14 +64,17 @@ Deno.serve(
 
     const saved = await insertRows(
       "idea_cards",
-      cards.map((c) => ({
-        profile_id: profile.id,
-        problem: c.problem ?? "",
-        solution: c.solution ?? "",
-        why_now: c.why_now ?? "",
-        business_model: c.business_model ?? "",
-        source_citations: c.source_citations ?? [],
-      })),
+      cards
+        .map((c) => ({
+          profile_id: profile.id,
+          problem: c.problem ?? "",
+          solution: c.solution ?? "",
+          why_now: c.why_now ?? "",
+          business_model: c.business_model ?? "",
+          fit_score: Math.max(0, Math.min(100, Math.round(Number(c.fit_score) || 0))),
+          source_citations: c.source_citations ?? [],
+        }))
+        .sort((a, b) => b.fit_score - a.fit_score),
     );
 
     return json({ idea_cards: saved, sourced_via: provider });

@@ -1,12 +1,42 @@
 import { useState } from "react";
 
-import { CapitalIcon, SourceIcon } from "../components/ui/icons";
-import { buttonClass, ErrorNote, ModulePage, Placeholder } from "../components/ui/page";
+import { CapitalIcon } from "../components/ui/icons";
+import {
+  buttonClass,
+  ErrorNote,
+  ModulePage,
+  Placeholder,
+  SourceChip,
+  StatusBar,
+} from "../components/ui/page";
 import { Provenance } from "../components/ui/provenance";
 import { api, type InvestorLead } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
 import type { SourcedVia } from "../lib/types";
 import { useSaved } from "../lib/use-saved";
+
+/** The opening line is the one thing here you'd paste into an email, so it gets
+ * a button rather than making you select the text. */
+function CopyLine({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1600);
+        } catch {
+          // Clipboard is blocked in some embeds; the text is selectable anyway.
+        }
+      }}
+      className="shrink-0 rounded border border-black/15 px-2 py-0.5 font-mono text-[10px] tracking-wide uppercase transition-colors hover:border-black/40 dark:border-white/15 dark:hover:border-white/40"
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
 
 export default function InvestorPage() {
   const { profile } = useProfile();
@@ -40,36 +70,32 @@ export default function InvestorPage() {
       eyebrow="Section 04"
       title="Investor Search"
       lede="Runs off the domain and market size already in your file, finds funds whose stated thesis fits, and drafts an opening line citing something they actually published."
-      form={
-        <div>
-          <p className="mb-4 text-sm font-medium">Reading from your file</p>
-          <dl className="mb-5 flex flex-col gap-3 text-sm">
-            <div className="flex items-baseline justify-between gap-3 border-b border-black/5 pb-2 dark:border-white/5">
-              <dt className="text-xs text-zinc-500">Domain</dt>
-              <dd className="truncate text-right">{profile?.domain || "not set"}</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-3 border-b border-black/5 pb-2 dark:border-white/5">
-              <dt className="text-xs text-zinc-500">Stage</dt>
-              <dd className="text-right">{profile?.stage || "early stage"}</dd>
-            </div>
-          </dl>
-
-          <button onClick={onSearch} className={buttonClass} disabled={loading || !ready}>
-            {loading ? "Searching…" : "Search investors"}
-          </button>
-
-          {!ready && (
-            <p className="mt-3 text-xs text-zinc-500">
-              This module reads the domain off your profile. Run Ideation or Market Research
-              first.
-            </p>
-          )}
+      bar={
+        <>
+          {/* This module asks nothing — showing a form would imply input that
+              doesn't exist. A status readout makes the dependency visible. */}
+          <StatusBar
+            label="Reading from your file"
+            value={
+              ready
+                ? [profile?.domain, profile?.stage || "early stage"].filter(Boolean).join(" · ")
+                : "No domain set yet"
+            }
+            note={
+              ready ? undefined : "Run Ideation or Market Research first — they set the domain."
+            }
+            action={
+              <button onClick={onSearch} className={buttonClass} disabled={loading || !ready}>
+                {loading ? "Searching…" : "Find investors"}
+              </button>
+            }
+          />
           {error && (
             <div className="mt-3">
               <ErrorNote>{error}</ErrorNote>
             </div>
           )}
-        </div>
+        </>
       }
     >
       {!leads && !loading && !restoring && (
@@ -80,16 +106,12 @@ export default function InvestorPage() {
         </Placeholder>
       )}
 
-      {restoring && !leads && (
-        <div className="h-28 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]" />
-      )}
-
-      {loading && (
+      {(loading || (restoring && !leads)) && (
         <div className="flex flex-col gap-4">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-28 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]"
+              className="h-32 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]"
             />
           ))}
         </div>
@@ -98,9 +120,11 @@ export default function InvestorPage() {
       {leads && !loading && (
         <div className="flex flex-col gap-4">
           <Provenance via={via} extra={`${leads.length} funds`} />
+
           {leads.length === 0 && (
             <Placeholder>No funds matched this domain and stage.</Placeholder>
           )}
+
           {leads.map((lead, i) => (
             <article
               key={lead.id}
@@ -118,17 +142,23 @@ export default function InvestorPage() {
                 </span>
               </div>
 
-              {lead.thesis_summary && (
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  {lead.thesis_summary}
-                </p>
+              {lead.outreach_angle && (
+                <div className="mt-3 rounded border-l-2 border-emerald-500/60 bg-emerald-500/[0.05] px-3 py-2.5">
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <p className="font-mono text-[10px] tracking-wider text-zinc-500 uppercase">
+                      Opening line
+                    </p>
+                    <CopyLine text={lead.outreach_angle} />
+                  </div>
+                  <p className="text-sm leading-relaxed">{lead.outreach_angle}</p>
+                </div>
               )}
 
-              {lead.outreach_angle && (
-                <div className="mt-4 rounded border-l-2 border-black/20 bg-black/[0.015] px-3 py-2 dark:border-white/20 dark:bg-white/[0.02]">
-                  <p className="text-xs text-zinc-500">Opening line</p>
-                  <p className="mt-0.5 text-sm">{lead.outreach_angle}</p>
-                </div>
+              {lead.thesis_summary && (
+                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="text-xs text-zinc-500">Thesis · </span>
+                  {lead.thesis_summary}
+                </p>
               )}
 
               {lead.portfolio_highlights?.length > 0 && (
@@ -145,15 +175,9 @@ export default function InvestorPage() {
               )}
 
               {lead.source_url && (
-                <a
-                  href={lead.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-black dark:hover:text-white"
-                >
-                  <SourceIcon className="h-3 w-3" />
-                  <span className="truncate">{lead.source_url.replace(/^https?:\/\//, "")}</span>
-                </a>
+                <div className="mt-3">
+                  <SourceChip url={lead.source_url} />
+                </div>
               )}
             </article>
           ))}
