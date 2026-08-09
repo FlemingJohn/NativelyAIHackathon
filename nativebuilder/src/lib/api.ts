@@ -11,28 +11,33 @@ import type {
  * difference is where the requests land: Supabase Edge Functions instead of
  * localhost:8000. */
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
-    "Supabase is not configured -- connect it in the Integrations panel, or set " +
-      "VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
-  );
+/** Checked per request, not at module load. Throwing at import time would take
+ * the whole bundle down -- including the landing page, which needs no backend
+ * at all -- the moment someone opens the app before wiring Supabase up. */
+function requireConfig(): { url: string; key: string } {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error(
+      "Supabase is not configured -- connect it in the Integrations panel, or set " +
+        "VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+    );
+  }
+  return { url: SUPABASE_URL, key: SUPABASE_ANON_KEY };
 }
 
-const BASE_URL = `${SUPABASE_URL}/functions/v1`;
-
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const { url: baseUrl, key: anonKey } = requireConfig();
+  const res = await fetch(`${baseUrl}/functions/v1${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       // Works with both key formats: the legacy anon JWT (eyJ...) and the
       // newer publishable key (sb_publishable_...). Sent in both headers
       // because Edge Functions check Authorization and PostgREST checks apikey.
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${anonKey}`,
+      apikey: anonKey,
       ...(init?.headers || {}),
     },
   });

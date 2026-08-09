@@ -4,7 +4,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
  * smallest replacement that keeps real URLs and the back button working --
  * no router dependency needed for five static paths. */
 
-export type Route = "/" | "/idea" | "/market" | "/cofounder" | "/investor";
+export type Route = "/" | "/dashboard" | "/idea" | "/market" | "/cofounder" | "/investor";
+
+const ROUTES: Route[] = ["/", "/dashboard", "/idea", "/market", "/cofounder", "/investor"];
 
 const RouterContext = createContext<{
   path: Route;
@@ -12,10 +14,8 @@ const RouterContext = createContext<{
 } | null>(null);
 
 function currentPath(): Route {
-  const p = window.location.pathname;
-  return (["/idea", "/market", "/cofounder", "/investor"] as const).includes(p as never)
-    ? (p as Route)
-    : "/";
+  const p = window.location.pathname as Route;
+  return ROUTES.includes(p) ? p : "/";
 }
 
 export function RouterProvider({ children }: { children: ReactNode }) {
