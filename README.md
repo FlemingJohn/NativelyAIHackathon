@@ -49,11 +49,9 @@ opening line quoting something they actually published.
 Four modules write into **one shared startup profile**, so each one starts where
 the last finished:
 
-```
-Ideation ──writes domain──▶ Market ──writes idea_text──▶ Capital
-                                                    ▲
-                    People ──writes founder_skills──┘   reads domain + latest TAM
-```
+<p align="center">
+  <img src="nativebuilder/docs/module-flow.svg" alt="Ideation, Market and People write to the shared startup profile; Capital reads domain and latest TAM back out" width="100%">
+</p>
 
 Capital is locked in the UI until a domain exists, because that dependency is
 real rather than decorative.
@@ -100,15 +98,9 @@ This module returned **zero results** for the entire life of the project until
 Bright Data was wired in, and the reason is instructive: a plain web search
 returns *articles about cofounder matching*. It cannot return people.
 
-```
-1. SERP API      site:linkedin.com/in "GTM cofounder fintech" climate fintech
-                 └─▶ 8 real profile URLs   (site: only works through Bright Data)
-
-2. Datasets API  those 8 URLs → LinkedIn Profiles dataset
-                 └─▶ structured records: headline, current role, experience
-
-3. Synthesis     rank by how well each closes the gap the founder named
-```
+<p align="center">
+  <img src="nativebuilder/docs/cofounder-flow.svg" alt="Step 1 Bright Data SERP finds 8 profile URLs; step 2 the Web Scraper API turns them into person records; step 3 synthesis ranks them" width="100%">
+</p>
 
 Stage one's output is stage two's input — the search decides what gets scraped.
 That is the agentic part, and it is the difference between "no candidates found"
@@ -183,10 +175,10 @@ Template: [`supabase/functions/.env.example`](nativebuilder/supabase/functions/.
 supabase secrets set --env-file supabase/functions/.env
 ```
 
-| File | Goes where | Public? |
+| File | Goes where | Reaches the browser? |
 |---|---|---|
-| [`.env.example`](nativebuilder/.env.example) | frontend env | ✅ ships in the bundle |
-| [`supabase/functions/.env.example`](nativebuilder/supabase/functions/.env.example) | Edge Function secrets | ❌ server-side only |
+| [`.env.example`](nativebuilder/.env.example) | frontend env | Yes — compiled into the bundle |
+| [`supabase/functions/.env.example`](nativebuilder/supabase/functions/.env.example) | Edge Function secrets | No — server-side only |
 
 Never move `AIML_API_KEY` or `BRIGHTDATA_API_TOKEN` into the frontend file.
 

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 560" width="1220" height="560" role="img" aria-label="Cofounder search: Bright Data SERP finds profile URLs, the Datasets API scrapes them, then synthesis ranks the candidates">
+  <defs>
+    <marker id="cf-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3D7FFC"/>
+    </marker>
+    <marker id="cf-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9b9ba3"/>
+    </marker>
+  </defs>
+  <style>
+    .kick { font-family:ui-monospace,'Cascadia Mono',monospace; font-size:11px; fill:#6b6b73; letter-spacing:2.2px }
+    .step { font-family:'Segoe UI',system-ui,sans-serif; font-size:17px; font-weight:600; fill:#fafafa }
+    .body { font-family:'Segoe UI',system-ui,sans-serif; font-size:13px; fill:#a1a1aa }
+    .code { font-family:ui-monospace,monospace; font-size:12.5px; fill:#93c5fd }
+    .out  { font-family:ui-monospace,monospace; font-size:12px; fill:#e4e4e7 }
+    .n    { font-family:ui-monospace,monospace; font-size:11px; fill:#52525b; letter-spacing:1.4px }
+    .note { font-family:ui-monospace,monospace; font-size:11px; fill:#8b8b93 }
+    .box  { fill:#141418; stroke:#2a2a30 }
+    .well { fill:#0e0e12; stroke:#1f1f23 }
+  </style>
+
+  <rect width="1220" height="560" fill="#09090b"/>
+  <text x="48" y="46" class="kick">COFOUNDER SEARCH — THE OUTPUT OF STEP 1 IS THE INPUT TO STEP 2</text>
+
+  <!-- ══ STEP 1 ══ -->
+  <g transform="translate(48 76)">
+    <rect width="1124" height="126" rx="12" class="box"/>
+    <g transform="translate(28 26) scale(1.05)">
+      <path fill="#3D7FFC" d="M0 2.68C0 1.2 1.2 0 2.68 0h26.64C30.8 0 32 1.2 32 2.68v26.64C32 30.8 30.8 32 29.32 32H2.68A2.68 2.68 0 0 1 0 29.32z"/>
+      <path fill="#FFFFFF" d="M13.773 7.242c.31.592.155 1.09-.063 1.618-.342.872-.249 1.712.374 2.428.622.746 1.493.84 2.396.653 1.244-.28 1.96-1.463 1.773-2.77-.093-.622-.466-1.244-.124-1.929-.311.156-.311.156-.684.778-.343-.404-.654-.84-1.027-1.276-.312-.342-.623-.653-.436-1.213a1.33 1.33 0 0 0-.685.747c-.093.31-.155.622-.217.933-.063.311-.218.591-.53.778-.186-.342-.373-.591-.777-.747m-.736 19.172v-1.522l1.649-.215v-8.702l-1.52-.493v-1.694l4.154-.557.878-.087v11.512l1.627.236v1.522z"/>
+    </g>
+    <text x="80" y="40" class="n">STEP 1</text>
+    <text x="80" y="62" class="step">Bright Data · SERP API</text>
+    <g transform="translate(80 78)">
+      <rect width="560" height="28" rx="6" class="well"/>
+      <text x="14" y="19" class="code">site:linkedin.com/in "GTM cofounder fintech" climate fintech</text>
+    </g>
+    <text x="672" y="98" class="note">site: filters only work through the SERP API</text>
+  </g>
+
+  <path d="M610 202 V 240" stroke="#3D7FFC" stroke-width="1.8" marker-end="url(#cf-a)"/>
+  <g transform="translate(632 212)">
+    <rect width="192" height="24" rx="12" fill="#0d1424" stroke="#3D7FFC" stroke-opacity=".45"/>
+    <text x="14" y="16" class="out" fill="#93c5fd">8 real profile URLs</text>
+  </g>
+
+  <!-- ══ STEP 2 ══ -->
+  <g transform="translate(48 248)">
+    <rect width="1124" height="126" rx="12" class="box"/>
+    <g transform="translate(28 26) scale(1.05)">
+      <path fill="#3D7FFC" d="M0 2.68C0 1.2 1.2 0 2.68 0h26.64C30.8 0 32 1.2 32 2.68v26.64C32 30.8 30.8 32 29.32 32H2.68A2.68 2.68 0 0 1 0 29.32z"/>
+      <path fill="#FFFFFF" d="M13.773 7.242c.31.592.155 1.09-.063 1.618-.342.872-.249 1.712.374 2.428.622.746 1.493.84 2.396.653 1.244-.28 1.96-1.463 1.773-2.77-.093-.622-.466-1.244-.124-1.929-.311.156-.311.156-.684.778-.343-.404-.654-.84-1.027-1.276-.312-.342-.623-.653-.436-1.213a1.33 1.33 0 0 0-.685.747c-.093.31-.155.622-.217.933-.063.311-.218.591-.53.778-.186-.342-.373-.591-.777-.747m-.736 19.172v-1.522l1.649-.215v-8.702l-1.52-.493v-1.694l4.154-.557.878-.087v11.512l1.627.236v1.522z"/>
+    </g>
+    <text x="80" y="40" class="n">STEP 2</text>
+    <text x="80" y="62" class="step">Bright Data · Web Scraper API</text>
+    <text x="80" y="92" class="body">Those exact URLs go into the LinkedIn Profiles dataset</text>
+    <g transform="translate(80 102)">
+      <text x="0" y="0" class="note">gd_l1viktl72bvl7bjuj0</text>
+    </g>
+  </g>
+
+  <path d="M610 374 V 412" stroke="#3D7FFC" stroke-width="1.8" marker-end="url(#cf-a)"/>
+  <g transform="translate(632 384)">
+    <rect width="392" height="24" rx="12" fill="#0d1424" stroke="#3D7FFC" stroke-opacity=".45"/>
+    <text x="14" y="16" class="out" fill="#93c5fd">headline · current role · experience, per person</text>
+  </g>
+
+  <!-- ══ STEP 3 ══ -->
+  <g transform="translate(48 420)">
+    <rect width="1124" height="100" rx="12" class="box"/>
+    <g transform="translate(28 26)">
+      <rect width="34" height="34" rx="9" fill="#fafafa"/>
+      <text x="17" y="22" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#09090b">AI</text>
+    </g>
+    <text x="80" y="40" class="n">STEP 3</text>
+    <text x="80" y="62" class="step">AI/ML API · synthesis</text>
+    <text x="80" y="86" class="body">Ranks each candidate by how well they close the gap the founder named — citing the record, not a guess.</text>
+    <g transform="translate(880 44)">
+      <rect width="216" height="26" rx="13" fill="#0f1a12" stroke="#22c55e" stroke-opacity=".45"/>
+      <text x="14" y="17" class="out" fill="#4ade80">ranked matches, with reasons</text>
+    </g>
+  </g>
+</svg>
