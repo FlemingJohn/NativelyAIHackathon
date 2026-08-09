@@ -1,7 +1,13 @@
+import { useState } from "react";
+
 import { ArrowIcon, CheckIcon, LockIcon } from "../components/ui/icons";
+import { inputClass, selectClass } from "../components/ui/page";
+import { api } from "../lib/api";
 import { completedCount, MODULES } from "../lib/module-meta";
 import { useProfile } from "../lib/profile-context";
 import { Link } from "../lib/router";
+
+const STAGES = ["idea", "pre-seed", "seed", "Series A", "Series B+"];
 
 function Stat({ label, value }: { label: string; value: string | null | undefined }) {
   return (
@@ -13,10 +19,35 @@ function Stat({ label, value }: { label: string; value: string | null | undefine
 }
 
 export default function Dashboard() {
-  const { profile, loading, error } = useProfile();
+  const { profile, loading, error, refresh } = useProfile();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [stage, setStage] = useState("");
+  const [targetMarket, setTargetMarket] = useState("");
 
   const done = completedCount(profile);
   const pct = Math.round((done / MODULES.length) * 100);
+
+  function startEditing() {
+    setStage(profile?.stage ?? "");
+    setTargetMarket(profile?.target_market ?? "");
+    setEditing(true);
+  }
+
+  async function save() {
+    if (!profile) return;
+    setSaving(true);
+    try {
+      await api.updateProfile(profile.id, {
+        stage: stage || null,
+        target_market: targetMarket || null,
+      });
+      await refresh();
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -53,8 +84,19 @@ export default function Dashboard() {
             <span className="text-sm font-medium">
               {loading ? "Opening your file…" : "Shared profile"}
             </span>
-            <span className="font-mono text-[11px] text-zinc-500">
-              {done} of {MODULES.length} sections
+            <span className="flex items-center gap-3">
+              <span className="font-mono text-[11px] text-zinc-500">
+                {done} of {MODULES.length} sections
+              </span>
+              {!loading && !editing && (
+                <button
+                  type="button"
+                  onClick={startEditing}
+                  className="text-xs text-zinc-500 underline-offset-2 hover:text-black hover:underline dark:hover:text-white"
+                >
+                  Edit
+                </button>
+              )}
             </span>
           </div>
 
@@ -65,13 +107,81 @@ export default function Dashboard() {
             />
           </div>
 
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat label="Domain" value={profile?.domain} />
-            <Stat label="Stage" value={profile?.stage} />
-            <Stat label="Idea" value={profile?.idea_text} />
-            <Stat label="Target market" value={profile?.target_market} />
-          </dl>
+          {editing ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="text-xs text-zinc-500">Stage</span>
+                <select
+                  className={selectClass}
+                  value={stage}
+                  onChange={(e) => setStage(e.target.value)}
+                >
+                  <option value="">Not set</option>
+                  {STAGES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-zinc-500">
+                  Investor search puts this in its query.
+                </span>
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="text-xs text-zinc-500">Target market</span>
+                <input
+                  className={inputClass}
+                  value={targetMarket}
+                  onChange={(e) => setTargetMarket(e.target.value)}
+                  placeholder="e.g. mid-size logistics operators in the EU"
+                />
+              </label>
+              <div className="flex gap-2 sm:col-span-2">
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={saving}
+                  className="rounded bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-40 dark:bg-white dark:text-black"
+                >
+                  {saving ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="rounded border border-black/10 px-4 py-2 text-sm dark:border-white/15"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Stat label="Domain" value={profile?.domain} />
+              <Stat label="Stage" value={profile?.stage} />
+              <Stat label="Idea" value={profile?.idea_text} />
+              <Stat label="Target market" value={profile?.target_market} />
+            </dl>
+          )}
         </section>
+      )}
+
+      {/* First visit: an empty grid of four cards gives no hint where to begin,
+          and three of the four read better once a domain exists. */}
+      {!loading && !error && done === 0 && (
+        <div className="rounded-lg border border-black/10 bg-black/[0.015] p-5 dark:border-white/10 dark:bg-white/[0.02]">
+          <p className="text-sm font-medium">Start with Ideation</p>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            It sets the domain on your file, which Market and Capital both read. Already know
+            your idea? Go straight to Market — it sets the domain too.
+          </p>
+          <Link
+            href="/idea"
+            className="group mt-3 inline-flex items-center gap-1.5 text-sm font-medium"
+          >
+            Open Ideation
+            <ArrowIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -10,15 +10,22 @@ import {
   Placeholder,
   selectClass,
 } from "../components/ui/page";
+import { Provenance } from "../components/ui/provenance";
 import { api, type CofounderMatch } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
+import type { SourcedVia } from "../lib/types";
+import { useSaved } from "../lib/use-saved";
 
 export default function CofounderPage() {
   const { profile } = useProfile();
   const [background, setBackground] = useState("technical");
   const [skills, setSkills] = useState("");
   const [desiredComplement, setDesiredComplement] = useState("");
-  const [matches, setMatches] = useState<CofounderMatch[] | null>(null);
+  const { saved: matches, restoring, setSaved: setMatches } = useSaved((f) =>
+    f.matches.length ? f.matches : null,
+  );
+  const [via, setVia] = useState<SourcedVia | undefined>();
+  const [enriched, setEnriched] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,12 +35,14 @@ export default function CofounderPage() {
     setLoading(true);
     setError(null);
     try {
-      const { matches } = await api.searchCofounders(
+      const { matches, sourced_via, profiles_enriched } = await api.searchCofounders(
         profile.id,
         { background, skills: skills.split(",").map((s) => s.trim()).filter(Boolean) },
         desiredComplement,
       );
-      setMatches(matches);
+      setMatches(matches as CofounderMatch[]);
+      setVia(sourced_via);
+      setEnriched(profiles_enriched ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to search cofounders");
     } finally {
@@ -89,8 +98,12 @@ export default function CofounderPage() {
         </form>
       }
     >
-      {!matches && !loading && (
+      {!matches && !loading && !restoring && (
         <Placeholder>Say what you&apos;re missing and we&apos;ll go looking for it.</Placeholder>
+      )}
+
+      {restoring && !matches && (
+        <div className="h-32 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]" />
       )}
 
       {loading && (
@@ -106,6 +119,16 @@ export default function CofounderPage() {
 
       {matches && !loading && (
         <div className="flex flex-col gap-4">
+          {/* The two-stage flow is the interesting part of this module, so it
+              gets stated: how many profiles were scraped, how many survived. */}
+          <Provenance
+            via={via}
+            extra={
+              enriched > 0
+                ? `${enriched} LinkedIn profiles enriched → ${matches.length} match${matches.length === 1 ? "" : "es"}`
+                : undefined
+            }
+          />
           {matches.length === 0 && (
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-5 text-sm">
               <p className="font-medium text-amber-700 dark:text-amber-400">

@@ -41,7 +41,7 @@ type RawMatch = {
  * dataset record, so this is the spend control. */
 function linkedinProfileUrls(
   results: { url: string }[],
-  limit = 5,
+  limit = 8,
 ): { url: string }[] {
   const seen = new Set<string>();
   const urls: { url: string }[] = [];
@@ -66,29 +66,24 @@ Deno.serve(
     const domain = profile.domain || "startup";
 
     // --- 1. gather: find candidate profile URLs --------------------------
-    const query = brightdata.isEnabled()
-      ? `site:linkedin.com/in ${desired} ${domain}`
-      : `"${desired}" ${domain} cofounder profile`;
-
+    // `site:` is the whole trick here, and it only works through the SERP API.
+    const query = `site:linkedin.com/in ${desired} ${domain}`;
     const { results, provider } = await cachedSearch("cofounder_search", query);
 
     // --- 2. enrich: turn URLs into real profile records ------------------
-    let candidateRecords: unknown[] = [];
-    let enrichedCount = 0;
+    const urls = linkedinProfileUrls(results);
+    const candidateRecords =
+      urls.length > 0
+        ? await brightdata.runDataset(
+            brightdata.DATASETS.linkedin_person_profile,
+            urls,
+            { timeoutMs: 90_000 },
+          )
+        : [];
+    const enrichedCount = candidateRecords.length;
 
-    if (brightdata.isEnabled()) {
-      const urls = linkedinProfileUrls(results);
-      if (urls.length > 0) {
-        candidateRecords = await brightdata.runDataset(
-          brightdata.DATASETS.linkedin_person_profile,
-          urls,
-          { timeoutMs: 60_000 },
-        );
-        enrichedCount = candidateRecords.length;
-      }
-    }
-
-    // Fall back to raw search snippets when enrichment produced nothing.
+    // If enrichment produced nothing (dataset slow or refused), reason over the
+    // search results themselves rather than returning nothing at all.
     const evidence = candidateRecords.length > 0 ? candidateRecords : results;
 
     // --- 3. extract ------------------------------------------------------

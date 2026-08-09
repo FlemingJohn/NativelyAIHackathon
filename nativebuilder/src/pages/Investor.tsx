@@ -2,12 +2,18 @@ import { useState } from "react";
 
 import { CapitalIcon, SourceIcon } from "../components/ui/icons";
 import { buttonClass, ErrorNote, ModulePage, Placeholder } from "../components/ui/page";
+import { Provenance } from "../components/ui/provenance";
 import { api, type InvestorLead } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
+import type { SourcedVia } from "../lib/types";
+import { useSaved } from "../lib/use-saved";
 
 export default function InvestorPage() {
   const { profile } = useProfile();
-  const [leads, setLeads] = useState<InvestorLead[] | null>(null);
+  const { saved: leads, restoring, setSaved: setLeads } = useSaved((f) =>
+    f.leads.length ? f.leads : null,
+  );
+  const [via, setVia] = useState<SourcedVia | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,8 +24,9 @@ export default function InvestorPage() {
     setLoading(true);
     setError(null);
     try {
-      const { leads } = await api.searchInvestors(profile.id);
-      setLeads(leads);
+      const { leads, sourced_via } = await api.searchInvestors(profile.id);
+      setLeads(leads as InvestorLead[]);
+      setVia(sourced_via);
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to search investors");
     } finally {
@@ -65,12 +72,16 @@ export default function InvestorPage() {
         </div>
       }
     >
-      {!leads && !loading && (
+      {!leads && !loading && !restoring && (
         <Placeholder>
           {ready
             ? "Run the search to match funds against your domain and stage."
             : "No domain set on your profile yet."}
         </Placeholder>
+      )}
+
+      {restoring && !leads && (
+        <div className="h-28 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]" />
       )}
 
       {loading && (
@@ -86,6 +97,7 @@ export default function InvestorPage() {
 
       {leads && !loading && (
         <div className="flex flex-col gap-4">
+          <Provenance via={via} extra={`${leads.length} funds`} />
           {leads.length === 0 && (
             <Placeholder>No funds matched this domain and stage.</Placeholder>
           )}

@@ -9,13 +9,17 @@ import {
   ModulePage,
   Placeholder,
 } from "../components/ui/page";
+import { Provenance } from "../components/ui/provenance";
 import { api, type MarketReport } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
+import type { SourcedVia } from "../lib/types";
+import { useSaved } from "../lib/use-saved";
 
 export default function MarketPage() {
   const { profile, refresh } = useProfile();
   const [ideaText, setIdeaText] = useState(profile?.idea_text || "");
-  const [report, setReport] = useState<MarketReport | null>(null);
+  const { saved: report, restoring, setSaved: setReport } = useSaved((f) => f.market_report);
+  const [via, setVia] = useState<SourcedVia | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +29,9 @@ export default function MarketPage() {
     setLoading(true);
     setError(null);
     try {
-      const { market_report } = await api.researchMarket(profile.id, ideaText);
-      setReport(market_report);
+      const { market_report, sourced_via } = await api.researchMarket(profile.id, ideaText);
+      setReport(market_report as MarketReport);
+      setVia(sourced_via);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to research market");
@@ -64,8 +69,12 @@ export default function MarketPage() {
         </form>
       }
     >
-      {!report && !loading && (
+      {!report && !loading && !restoring && (
         <Placeholder>Describe the idea and we&apos;ll size the opportunity.</Placeholder>
+      )}
+
+      {restoring && !report && (
+        <div className="h-40 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]" />
       )}
 
       {loading && (
@@ -84,6 +93,10 @@ export default function MarketPage() {
 
       {report && !loading && (
         <div className="flex flex-col gap-6">
+          <Provenance
+            via={via}
+            extra={`${report.competitors?.length ?? 0} competitors · ${report.source_citations?.length ?? 0} sources`}
+          />
           <div className="grid grid-cols-3 gap-4">
             {[
               ["TAM", report.tam],

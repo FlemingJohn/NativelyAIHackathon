@@ -1,8 +1,7 @@
-// POST   /functions/v1/profile        create
-// GET    /functions/v1/profile/:id     read
-// PATCH  /functions/v1/profile/:id     update
-//
-// Port of backend/src/routes/profile.ts.
+// POST   /functions/v1/profile           create
+// GET    /functions/v1/profile/:id        read
+// GET    /functions/v1/profile/:id/full   read + everything the modules saved
+// PATCH  /functions/v1/profile/:id        update
 
 import { handler, HttpError, json } from "../_shared/cors.ts";
 import { db, getProfileOr404 } from "../_shared/db.ts";
@@ -17,16 +16,47 @@ const PATCHABLE = [
   "budget",
 ] as const;
 
-/** Everything after /functions/v1/profile, e.g. "<uuid>" or "". */
-function idFromPath(req: Request): string {
+/** ["<uuid>", "full"] from /functions/v1/profile/<uuid>/full */
+function pathParts(req: Request): { id: string; sub: string } {
   const parts = new URL(req.url).pathname.split("/").filter(Boolean);
   const i = parts.indexOf("profile");
-  return i >= 0 ? (parts[i + 1] ?? "") : "";
+  return { id: i >= 0 ? (parts[i + 1] ?? "") : "", sub: i >= 0 ? (parts[i + 2] ?? "") : "" };
+}
+
+/**
+ * Everything saved against a profile, newest first.
+ *
+ * Without this the app is write-only: each module saved its results and then
+ * had no way to read them back, so a refresh looked like the work had been
+ * lost. The limits keep a re-run from returning every historical row — the UI
+ * shows the latest run, not an archive.
+ */
+async function fullProfile(profileId: string) {
+  const profile = await getProfileOr404(profileId);
+
+  const [ideas, reports, matches, leads] = await Promise.all([
+    db.from("idea_cards").select("*").eq("profile_id", profileId)
+      .order("created_at", { ascending: false }).limit(5),
+    db.from("market_reports").select("*").eq("profile_id", profileId)
+      .order("created_at", { ascending: false }).limit(1),
+    db.from("cofounder_matches").select("*").eq("profile_id", profileId)
+      .order("created_at", { ascending: false }).limit(5),
+    db.from("investor_leads").select("*").eq("profile_id", profileId)
+      .order("created_at", { ascending: false }).limit(5),
+  ]);
+
+  return {
+    profile,
+    idea_cards: ideas.data ?? [],
+    market_report: reports.data?.[0] ?? null,
+    matches: matches.data ?? [],
+    leads: leads.data ?? [],
+  };
 }
 
 Deno.serve(
   handler(async (req) => {
-    const id = idFromPath(req);
+    const { id, sub } = pathParts(req);
 
     if (req.method === "POST") {
       const body = await req.json();
@@ -52,14 +82,13 @@ Deno.serve(
     }
 
     if (req.method === "GET") {
-      return json(await getProfileOr404(id));
+      return json(sub === "full" ? await fullProfile(id) : await getProfileOr404(id));
     }
 
     if (req.method === "PATCH") {
       const profile = await getProfileOr404(id);
       const body = await req.json();
 
-      // Only keys the client actually sent are applied.
       const patch: Record<string, unknown> = {};
       for (const key of PATCHABLE) {
         if (key in body) patch[key] = body[key];

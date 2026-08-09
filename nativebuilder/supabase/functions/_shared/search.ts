@@ -1,104 +1,45 @@
 /**
- * Web search facade.
+ * Web search. Bright Data only.
  *
- * Bright Data's SERP API when BRIGHTDATA_API_TOKEN is set, DuckDuckGo HTML
- * otherwise. This is the swap the codebase was built for since the first
- * version — every module calls `searchEngine`, so the provider changes here and
- * nowhere else.
+ * There is deliberately no fallback provider. The previous DuckDuckGo path was
+ * removed for two reasons:
  *
- * The difference is not cosmetic. DuckDuckGo's HTML endpoint ignores `site:`
- * filters and rate-limits hard; Bright Data returns parsed Google results and
- * doesn't get blocked, which is what makes `site:linkedin.com/in` queries
- * actually work.
+ *   1. Scraping a search engine's HTML endpoint is not a supported use of it.
+ *      Bright Data's SERP API is the sanctioned way to get Google results.
+ *   2. It failed silently. When DuckDuckGo changed its markup the parser
+ *      returned zero results with HTTP 200, so every module reported "nothing
+ *      found" — indistinguishable from a genuinely empty search, and the empty
+ *      result got cached.
+ *
+ * Now a search either works or raises. A module that can't gather evidence says
+ * so instead of quietly producing an answer with nothing behind it.
  */
 
 import * as brightdata from "./brightdata.ts";
+import { HttpError } from "./cors.ts";
 import type { SearchResult } from "./search-types.ts";
 
 export type { SearchResult };
 
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-
-function stripTags(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function normalizeUrl(href: string): string {
-  try {
-    const url = new URL(href.startsWith("//") ? `https:${href}` : href);
-    const target = url.searchParams.get("uddg");
-    return target ? decodeURIComponent(target) : url.toString();
-  } catch {
-    return href;
-  }
-}
-
-/** Free fallback: DuckDuckGo's HTML endpoint. No key, no signup, no `site:`. */
-async function duckDuckGo(query: string, maxResults: number): Promise<SearchResult[]> {
-  const response = await fetch("https://html.duckduckgo.com/html/", {
-    method: "POST",
-    headers: {
-      "User-Agent": USER_AGENT,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({ q: query }),
-  });
-
-  if (!response.ok) throw new Error(`duckduckgo search failed: ${response.status}`);
-
-  const html = await response.text();
-  const results: SearchResult[] = [];
-
-  for (const block of html.split('class="result__body"').slice(1)) {
-    if (results.length >= maxResults) break;
-
-    const link = /<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i
-      .exec(block);
-    if (!link) continue;
-
-    const title = stripTags(link[2] ?? "");
-    if (!title) continue;
-
-    const snippet = /class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/i.exec(block);
-
-    results.push({
-      title,
-      url: normalizeUrl(link[1] ?? ""),
-      snippet: snippet ? stripTags(snippet[1] ?? "") : "",
-    });
-  }
-
-  return results;
-}
-
-/** Which provider actually served the last call — surfaced so the UI can say
- * where the evidence came from rather than leaving it implicit. */
-export type Provider = "brightdata" | "duckduckgo";
+/** Only two possibilities now: a live Bright Data call, or a cache hit. */
+export type Provider = "brightdata";
 
 export async function searchEngine(
   query: string,
   maxResults = 8,
 ): Promise<{ results: SearchResult[]; provider: Provider }> {
-  if (brightdata.isEnabled()) {
-    try {
-      const results = await brightdata.searchEngine(query, maxResults);
-      if (results.length > 0) return { results, provider: "brightdata" };
-      console.warn("bright data returned no results; falling back to duckduckgo");
-    } catch (err) {
-      // A billing or zone problem shouldn't take the whole module down.
-      console.warn(`bright data search failed, falling back: ${err}`);
-    }
+  if (!brightdata.isEnabled()) {
+    throw new HttpError(
+      503,
+      "Web search is not configured — set BRIGHTDATA_API_TOKEN in Edge Function secrets.",
+    );
   }
-  return { results: await duckDuckGo(query, maxResults), provider: "duckduckgo" };
+
+  try {
+    const results = await brightdata.searchEngine(query, maxResults);
+    return { results, provider: "brightdata" };
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new HttpError(502, `Web search failed: ${detail}`);
+  }
 }

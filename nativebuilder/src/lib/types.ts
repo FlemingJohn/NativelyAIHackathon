@@ -41,6 +41,10 @@ export type CofounderMatch = {
   skill_tags: string[];
 };
 
+/** Where a result's evidence came from. Returned by every module so the UI can
+ * say it out loud rather than leaving provenance implicit. */
+export type SourcedVia = "brightdata" | "cache";
+
 export type InvestorLead = {
   id: string;
   firm: string;

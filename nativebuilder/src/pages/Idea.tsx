@@ -9,14 +9,20 @@ import {
   ModulePage,
   Placeholder,
 } from "../components/ui/page";
+import { Provenance } from "../components/ui/provenance";
 import { api, type IdeaCard } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
+import type { SourcedVia } from "../lib/types";
+import { useSaved } from "../lib/use-saved";
 
 export default function IdeaPage() {
   const { profile, refresh } = useProfile();
   const [domain, setDomain] = useState(profile?.domain || "");
   const [interests, setInterests] = useState("");
-  const [cards, setCards] = useState<IdeaCard[] | null>(null);
+  const { saved: cards, restoring, setSaved: setCards } = useSaved((f) =>
+    f.idea_cards.length ? f.idea_cards : null,
+  );
+  const [via, setVia] = useState<SourcedVia | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,8 +32,13 @@ export default function IdeaPage() {
     setLoading(true);
     setError(null);
     try {
-      const { idea_cards } = await api.generateIdeas(profile.id, domain, interests);
-      setCards(idea_cards);
+      const { idea_cards, sourced_via } = await api.generateIdeas(
+        profile.id,
+        domain,
+        interests,
+      );
+      setCards(idea_cards as IdeaCard[]);
+      setVia(sourced_via);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "failed to generate ideas");
@@ -73,8 +84,12 @@ export default function IdeaPage() {
         </form>
       }
     >
-      {!cards && !loading && (
+      {!cards && !loading && !restoring && (
         <Placeholder>Name a domain and we&apos;ll go looking for problems worth solving.</Placeholder>
+      )}
+
+      {restoring && !cards && (
+        <div className="h-36 animate-pulse rounded-lg border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]" />
       )}
 
       {loading && (
@@ -90,6 +105,7 @@ export default function IdeaPage() {
 
       {cards && !loading && (
         <div className="flex flex-col gap-4">
+          <Provenance via={via} extra={`${cards.length} ideas`} />
           {cards.length === 0 && (
             <Placeholder>No idea cards came back — try a different domain.</Placeholder>
           )}

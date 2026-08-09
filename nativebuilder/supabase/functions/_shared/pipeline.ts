@@ -52,9 +52,9 @@ export async function cachedSearch(
     .maybeSingle();
 
   // An empty cached result is treated as a miss. Caching a failed search
-  // poisons that query permanently -- which is exactly what happened when
-  // DuckDuckGo changed its markup: every module kept serving [] from cache
-  // long after the underlying problem was fixable.
+  // poisons that query permanently -- which is exactly what happened when the
+  // old fallback provider changed its markup: every module kept serving []
+  // from cache long after the underlying problem was fixable.
   const hit = cached?.raw_response as SearchResult[] | undefined;
   if (Array.isArray(hit) && hit.length > 0) {
     return { results: hit, provider: "cache" };

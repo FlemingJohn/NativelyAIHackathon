@@ -3,8 +3,18 @@ import type {
   IdeaCard,
   InvestorLead,
   MarketReport,
+  SourcedVia,
   StartupProfile,
 } from "./types";
+
+/** Everything saved against a profile — what each module wrote, read back. */
+export type ProfileFull = {
+  profile: StartupProfile;
+  idea_cards: IdeaCard[];
+  market_report: MarketReport | null;
+  matches: CofounderMatch[];
+  leads: InvestorLead[];
+};
 
 /** Same shape as the Express-backed client this replaces -- every page keeps
  * calling api.generateIdeas(...) and never learns the backend moved. The only
@@ -57,6 +67,10 @@ export const api = {
 
   getProfile: (id: string) => request<StartupProfile>(`/profile/${id}`),
 
+  /** Profile plus everything the modules saved, so a page can restore its
+   * results instead of starting blank on every visit. */
+  getProfileFull: (id: string) => request<ProfileFull>(`/profile/${id}/full`),
+
   updateProfile: (id: string, patch: Partial<StartupProfile>) =>
     request<StartupProfile>(`/profile/${id}`, {
       method: "PATCH",
@@ -64,13 +78,13 @@ export const api = {
     }),
 
   generateIdeas: (profileId: string, domain: string, interests: string) =>
-    request<{ idea_cards: IdeaCard[] }>("/idea", {
+    request<{ idea_cards: IdeaCard[]; sourced_via: SourcedVia }>("/idea", {
       method: "POST",
       body: JSON.stringify({ profile_id: profileId, domain, interests }),
     }),
 
   researchMarket: (profileId: string, ideaText: string) =>
-    request<{ market_report: MarketReport }>("/market", {
+    request<{ market_report: MarketReport; sourced_via: SourcedVia }>("/market", {
       method: "POST",
       body: JSON.stringify({ profile_id: profileId, idea_text: ideaText }),
     }),
@@ -80,7 +94,11 @@ export const api = {
     founderProfile: Record<string, unknown>,
     desiredComplement: string,
   ) =>
-    request<{ matches: CofounderMatch[] }>("/cofounder", {
+    request<{
+      matches: CofounderMatch[];
+      sourced_via: SourcedVia;
+      profiles_enriched: number;
+    }>("/cofounder", {
       method: "POST",
       body: JSON.stringify({
         profile_id: profileId,
@@ -90,7 +108,7 @@ export const api = {
     }),
 
   searchInvestors: (profileId: string) =>
-    request<{ leads: InvestorLead[] }>("/investor", {
+    request<{ leads: InvestorLead[]; sourced_via: SourcedVia }>("/investor", {
       method: "POST",
       body: JSON.stringify({ profile_id: profileId }),
     }),
@@ -101,5 +119,6 @@ export type {
   IdeaCard,
   InvestorLead,
   MarketReport,
+  SourcedVia,
   StartupProfile,
 };
