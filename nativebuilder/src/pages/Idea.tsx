@@ -1,13 +1,15 @@
 import { useState } from "react";
 
 import { Explain } from "../components/ui/explain";
+import { IdeaMark } from "../components/ui/marks";
+import { IDEA_WORDS, Score } from "../components/ui/score";
 import { IdeationIcon } from "../components/ui/icons";
 import {
   Bar,
   BarField,
   buttonClass,
   ErrorNote,
-  FitBadge,
+  MarkCard,
   inputClass,
   ModulePage,
   Placeholder,
@@ -148,19 +150,22 @@ export default function IdeaPage() {
           {cards.map((card, i) => {
             const inUse = chosen?.startsWith(card.problem) ?? false;
             return (
-              <article
+              <MarkCard
                 key={card.id}
-                className={`rounded-lg border p-5 transition-colors ${
-                  inUse
-                    ? "border-black ring-1 ring-black dark:border-white dark:ring-white"
-                    : "border-black/10 dark:border-white/10"
-                }`}
+                mark={<IdeaMark />}
+                dim={i > 0}
+                highlighted={inUse}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2.5">
                       <Rank n={i + 1} />
-                      <FitBadge score={card.fit_score ?? 0} />
+                      <Score
+                        score={card.fit_score ?? 0}
+                        breakdown={card.score_breakdown}
+                        words={IDEA_WORDS}
+                        note="Measured against the search results — not against how good the idea sounds."
+                      />
                       {i === 0 && (
                         <span className="text-xs text-zinc-500">
                           <Explain term="what's this score?">
@@ -221,7 +226,7 @@ export default function IdeaPage() {
                     ))}
                   </div>
                 )}
-              </article>
+              </MarkCard>
             );
           })}
 

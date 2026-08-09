@@ -12,6 +12,10 @@ export type StartupProfile = {
   updated_at: string;
 };
 
+/** One line of a score: what was assessed, what it earned, what it could earn.
+ * The headline score is the sum of these, recomputed server-side. */
+export type Criterion = { label: string; points: number; max: number };
+
 export type IdeaCard = {
   id: string;
   problem: string;
@@ -19,6 +23,7 @@ export type IdeaCard = {
   why_now: string;
   business_model: string;
   fit_score: number;
+  score_breakdown: Criterion[];
   source_citations: string[];
 };
 
@@ -42,6 +47,7 @@ export type CofounderMatch = {
   /** "strong" | "partial" | "none" — every candidate is returned, including
    * the ones that don't fit, because why they don't is useful. */
   fit_level: string;
+  score_breakdown: Criterion[];
   match_rationale: string;
   skill_tags: string[];
 };

@@ -2,12 +2,14 @@ import { useState } from "react";
 
 import { Explain, GapDiagram } from "../components/ui/explain";
 import { PeopleIcon } from "../components/ui/icons";
+import { FitMark } from "../components/ui/marks";
+import { CANDIDATE_WORDS, Score } from "../components/ui/score";
 import {
   Bar,
   BarField,
   buttonClass,
   ErrorNote,
-  FitBadge,
+  MarkCard,
   inputClass,
   ModulePage,
   Placeholder,
@@ -160,15 +162,17 @@ export default function CofounderPage() {
           )}
 
           {top.map((m, i) => (
-            <article
-              key={m.id}
-              className="rounded-lg border border-black/10 p-5 dark:border-white/10"
-            >
+            <MarkCard key={m.id} mark={<FitMark score={m.fit_score} />} dim={i > 0}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <Rank n={i + 1} />
-                    <FitBadge score={m.fit_score} level={m.fit_level} />
+                    <Score
+                      score={m.fit_score}
+                      breakdown={m.score_breakdown}
+                      words={CANDIDATE_WORDS}
+                      scoredAgainst={desiredComplement || undefined}
+                    />
                     {i === 0 && (
                       <span className="text-xs text-zinc-500">
                         <Explain term="what's this score?">
@@ -214,7 +218,7 @@ export default function CofounderPage() {
                   <SourceChip url={m.profile_url} />
                 </div>
               )}
-            </article>
+            </MarkCard>
           ))}
 
           {rest.length > 0 && (
@@ -235,7 +239,12 @@ export default function CofounderPage() {
                     className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 text-sm"
                   >
                     <Rank n={i + FULL_CARD_LIMIT + 1} />
-                    <FitBadge score={m.fit_score} level={m.fit_level} />
+                    <Score
+                      score={m.fit_score}
+                      breakdown={m.score_breakdown}
+                      words={CANDIDATE_WORDS}
+                      scoredAgainst={desiredComplement || undefined}
+                    />
                     <span className="min-w-0 flex-1">
                       <b className="font-medium">{m.name}</b>
                       <span className="text-zinc-600 dark:text-zinc-400">

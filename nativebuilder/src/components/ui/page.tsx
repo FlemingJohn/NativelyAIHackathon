@@ -147,51 +147,45 @@ export function SourceChip({ url }: { url: string }) {
   );
 }
 
-/** Score meter + level pill. Colour alone never carries the level — the pill
- * says it in words.
- *
- * The wording describes the *gap*, not the person: "doesn't cover it" is a
- * statement about what the founder asked for. "Not a fit" reads as a verdict
- * on a real named human, which is not what the score measures. */
-export function FitBadge({ score, level }: { score: number; level?: string }) {
-  const tone =
-    level === "strong"
-      ? "bg-black dark:bg-white"
-      : level === "partial"
-        ? "bg-amber-500"
-        : "bg-zinc-400 dark:bg-zinc-600";
-  const pill =
-    level === "strong"
-      ? "text-emerald-600 dark:text-emerald-400"
-      : level === "partial"
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-zinc-500";
-  const words =
-    level === "strong"
-      ? "covers your gap"
-      : level === "partial"
-        ? "covers some of it"
-        : "doesn't cover it";
-
-  return (
-    <span className="flex items-center gap-2">
-      <span className="h-1.5 w-[88px] overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-        <span className={`block h-full rounded-full ${tone}`} style={{ width: `${score}%` }} />
-      </span>
-      <span className="font-mono text-xs tabular-nums">{score}</span>
-      {level && (
-        <span
-          className={`rounded-full border border-current px-1.5 py-px font-mono text-[9.5px] tracking-wide uppercase ${pill}`}
-        >
-          {words}
-        </span>
-      )}
-    </span>
-  );
+export function Rank({ n }: { n: number }) {
+  return <span className="font-mono text-xs text-zinc-400 dark:text-zinc-600">#{n}</span>;
 }
 
-export function Rank({ n }: { n: number }) {
+/**
+ * A result card with a mark rail down its left edge.
+ *
+ * Every result used to render as the same bordered box, so an idea, a person
+ * and a fund were indistinguishable at a glance. The rail carries a small
+ * drawing of what the card is — and for ideas and candidates, how it scored.
+ */
+export function MarkCard({
+  mark,
+  dim,
+  highlighted,
+  children,
+}: {
+  mark: ReactNode;
+  /** Lower-ranked results fade their mark, so position reads before the text. */
+  dim?: boolean;
+  highlighted?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <span className="font-mono text-xs text-zinc-400 dark:text-zinc-600">#{n}</span>
+    <article
+      className={`grid grid-cols-[56px_minmax(0,1fr)] overflow-hidden rounded-lg border transition-colors ${
+        highlighted
+          ? "border-black ring-1 ring-black dark:border-white dark:ring-white"
+          : "border-black/10 dark:border-white/10"
+      }`}
+    >
+      <div
+        className={`flex items-start justify-center border-r border-black/10 bg-black/[0.015] px-2 py-4 text-zinc-400 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-500 ${
+          dim ? "opacity-55" : ""
+        }`}
+      >
+        {mark}
+      </div>
+      <div className="min-w-0 p-5">{children}</div>
+    </article>
   );
 }

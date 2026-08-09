@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { Explain, MethodDiagram, NestedMarketDiagram } from "../components/ui/explain";
 import { MarketIcon } from "../components/ui/icons";
+import { EvidenceMark, FieldMark, NestedMarketMark, TrendMark } from "../components/ui/marks";
 import {
   Bar,
   BarField,
@@ -62,7 +63,8 @@ function MarketFigure({ report }: { report: MarketReport }) {
 
   return (
     <figure className="m-0 rounded-lg border border-black/10 p-5 dark:border-white/10">
-      <figcaption className="mb-1 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
+      <figcaption className="mb-1 flex items-center gap-2 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
+        <NestedMarketMark className="h-5 w-5" />
         Addressable market
       </figcaption>
       <p className="mb-4 max-w-2xl text-xs text-zinc-500">
@@ -187,7 +189,8 @@ export default function MarketPage() {
             <div className="rounded-lg border border-black/10 bg-black/[0.015] p-4 dark:border-white/10 dark:bg-white/[0.02]">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-zinc-500">
+                  <p className="flex items-center gap-2 text-xs text-zinc-500">
+                    <EvidenceMark className="h-5 w-5" />
                     How these numbers were reached — check this before you quote them
                   </p>
                   <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -200,7 +203,8 @@ export default function MarketPage() {
           )}
 
           <section className="overflow-hidden rounded-lg border border-black/10 dark:border-white/10">
-            <p className="px-4 pt-4 pb-3 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
+            <p className="flex items-center gap-2 px-4 pt-4 pb-3 font-mono text-[10px] tracking-widest text-zinc-500 uppercase">
+              <FieldMark className="h-5 w-5" />
               Competitors found
             </p>
             <div className="overflow-x-auto">
@@ -245,7 +249,10 @@ export default function MarketPage() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-sm font-medium">Suggested KPIs</h2>
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-medium">
+              <TrendMark className="h-5 w-5 text-zinc-400 dark:text-zinc-500" />
+              Suggested KPIs
+            </h2>
             <ul className="divide-y divide-black/5 rounded-lg border border-black/10 dark:divide-white/5 dark:border-white/10">
               {report.kpis?.length ? (
                 report.kpis.map((k, i) => (

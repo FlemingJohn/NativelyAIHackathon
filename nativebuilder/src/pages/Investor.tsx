@@ -1,10 +1,12 @@
 import { useState } from "react";
 
 import { CapitalIcon } from "../components/ui/icons";
+import { LeadMark } from "../components/ui/marks";
 import {
   buttonClass,
   ErrorNote,
   ModulePage,
+  MarkCard,
   Placeholder,
   SourceChip,
   StatusBar,
@@ -14,29 +16,6 @@ import { api, type InvestorLead } from "../lib/api";
 import { useProfile } from "../lib/profile-context";
 import type { SourcedVia } from "../lib/types";
 import { useSaved } from "../lib/use-saved";
-
-/** The opening line is the one thing here you'd paste into an email, so it gets
- * a button rather than making you select the text. */
-function CopyLine({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      type="button"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(text);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1600);
-        } catch {
-          // Clipboard is blocked in some embeds; the text is selectable anyway.
-        }
-      }}
-      className="shrink-0 rounded border border-black/15 px-2 py-0.5 font-mono text-[10px] tracking-wide uppercase transition-colors hover:border-black/40 dark:border-white/15 dark:hover:border-white/40"
-    >
-      {copied ? "Copied" : "Copy"}
-    </button>
-  );
-}
 
 export default function InvestorPage() {
   const { profile } = useProfile();
@@ -126,10 +105,7 @@ export default function InvestorPage() {
           )}
 
           {leads.map((lead, i) => (
-            <article
-              key={lead.id}
-              className="rounded-lg border border-black/10 p-5 dark:border-white/10"
-            >
+            <MarkCard key={lead.id} mark={<LeadMark />} dim={i > 0}>
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-medium">
                   {lead.firm}
@@ -144,12 +120,9 @@ export default function InvestorPage() {
 
               {lead.outreach_angle && (
                 <div className="mt-3 rounded border-l-2 border-emerald-500/60 bg-emerald-500/[0.05] px-3 py-2.5">
-                  <div className="mb-1 flex items-center justify-between gap-3">
-                    <p className="font-mono text-[10px] tracking-wider text-zinc-500 uppercase">
-                      Opening line
-                    </p>
-                    <CopyLine text={lead.outreach_angle} />
-                  </div>
+                  <p className="mb-1 font-mono text-[10px] tracking-wider text-zinc-500 uppercase">
+                    Opening line
+                  </p>
                   <p className="text-sm leading-relaxed">{lead.outreach_angle}</p>
                 </div>
               )}
@@ -179,7 +152,7 @@ export default function InvestorPage() {
                   <SourceChip url={lead.source_url} />
                 </div>
               )}
-            </article>
+            </MarkCard>
           ))}
         </div>
       )}

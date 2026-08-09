@@ -27,19 +27,32 @@ poor match is useful information, and the founder wants to see who was \
 considered.
 
 Return a JSON array, one item per candidate, sorted by fit_score descending:
-{name, headline, profile_url, fit_score, fit_level, match_rationale, skill_tags: []}
+{name, headline, profile_url, fit_score, fit_level, match_rationale,
+ skill_tags: [], score_breakdown: []}
 
-  fit_score       0-100. How completely this person closes the stated gap.
+  fit_score       0-100, and it MUST equal the sum of the points you award below.
   fit_level       "strong" (70+), "partial" (40-69), or "none" (under 40).
   match_rationale One or two sentences. For a strong or partial fit, name the
                   specific gap they close and cite something from their record.
                   For "none", say plainly what is missing — "technical like the
                   founder, duplicates existing strengths" is more useful than
                   silence.
+  score_breakdown Exactly these five criteria, in this order, as
+                  {label, points, max}:
+                    "Sales / GTM ownership"              max 30
+                    "Same industry"                      max 25
+                    "Stage match"                        max 20
+                    "Complements, doesn't duplicate you" max 15
+                    "Has founded a company before"       max 10
+                  Award points from the record only. A criterion the profile
+                  says nothing about scores 0 — absence of evidence is not
+                  partial credit.
 
 Only include people who actually appear in the input. If it contains no real \
 people, return an empty array rather than inventing names. Respond with a JSON \
 array only, no markdown fences.`;
+
+type Criterion = { label?: string; points?: number; max?: number };
 
 type RawMatch = {
   name?: string;
@@ -49,17 +62,38 @@ type RawMatch = {
   fit_level?: string;
   match_rationale?: string;
   skill_tags?: string[];
+  score_breakdown?: Criterion[];
 };
 
-const FIT_LEVELS = new Set(["strong", "partial", "none"]);
+/**
+ * The headline score is recomputed from the breakdown rather than trusted.
+ * Models routinely return a total that doesn't match the parts they just
+ * listed, and a card that shows "82" above rows summing to 71 destroys the
+ * credibility the breakdown exists to build. Level is likewise derived from
+ * the score, never from what the model called it.
+ */
+function normalize(m: RawMatch): {
+  fit_score: number;
+  fit_level: string;
+  score_breakdown: { label: string; points: number; max: number }[];
+} {
+  const breakdown = (Array.isArray(m.score_breakdown) ? m.score_breakdown : [])
+    .filter((c) => c && typeof c.label === "string")
+    .map((c) => {
+      const max = Math.max(0, Math.round(Number(c.max) || 0));
+      const points = Math.max(0, Math.min(max, Math.round(Number(c.points) || 0)));
+      return { label: String(c.label), points, max };
+    });
 
-/** Trust the model's ordering only after re-deriving level from score — the two
- * disagree often enough that a "strong" badge on a score of 20 is a real risk. */
-function normalize(m: RawMatch): Required<Pick<RawMatch, "fit_score">> & { fit_level: string } {
-  const score = Math.max(0, Math.min(100, Math.round(Number(m.fit_score) || 0)));
-  const stated = String(m.fit_level ?? "").toLowerCase();
-  const derived = score >= 70 ? "strong" : score >= 40 ? "partial" : "none";
-  return { fit_score: score, fit_level: FIT_LEVELS.has(stated) ? derived : derived };
+  const summed = breakdown.reduce((t, c) => t + c.points, 0);
+  const stated = Math.max(0, Math.min(100, Math.round(Number(m.fit_score) || 0)));
+  const score = breakdown.length > 0 ? Math.min(100, summed) : stated;
+
+  return {
+    fit_score: score,
+    fit_level: score >= 70 ? "strong" : score >= 40 ? "partial" : "none",
+    score_breakdown: breakdown,
+  };
 }
 
 /**
@@ -171,7 +205,7 @@ Deno.serve(
 
     const rows = matches
       .map((m) => {
-        const { fit_score, fit_level } = normalize(m);
+        const { fit_score, fit_level, score_breakdown } = normalize(m);
         return {
           profile_id: profile.id,
           name: m.name ?? "",
@@ -179,6 +213,7 @@ Deno.serve(
           profile_url: m.profile_url ?? null,
           fit_score,
           fit_level,
+          score_breakdown,
           match_rationale: m.match_rationale ?? "",
           skill_tags: m.skill_tags ?? [],
         };
