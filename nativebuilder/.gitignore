@@ -1,17 +1,6 @@
-# node
 node_modules/
 dist/
-.next/
-
-# env
 .env
 .env.local
-
-# supabase
 supabase/functions/node_modules/
 supabase/functions/deno.lock
-.temp/
-
-# general
-.DS_Store
-*.log

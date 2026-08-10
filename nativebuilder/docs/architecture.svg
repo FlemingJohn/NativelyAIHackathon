@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 700" width="1440" height="700" role="img" aria-label="Venture Foundry flow: user, app, gather, extract, synthesize, save, result">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#71717a"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3f3f46"/>
+    </marker>
+  </defs>
+
+  <style>
+    .t   { font-family:'Segoe UI',system-ui,sans-serif; fill:#fafafa }
+    .h1  { font-size:26px; font-weight:600; letter-spacing:-.4px }
+    .kick{ font-family:ui-monospace,'Cascadia Mono',monospace; font-size:11px; fill:#6b6b73; letter-spacing:2.4px }
+    .step{ font-family:'Segoe UI',system-ui,sans-serif; font-size:17px; font-weight:600; fill:#fafafa }
+    .sub { font-family:'Segoe UI',system-ui,sans-serif; font-size:12.5px; fill:#9b9ba3 }
+    .n   { font-family:ui-monospace,monospace; font-size:11px; fill:#52525b; letter-spacing:1.2px }
+    .svc { font-family:'Segoe UI',system-ui,sans-serif; font-size:13.5px; font-weight:600; fill:#e4e4e7 }
+    .svcs{ font-family:ui-monospace,monospace; font-size:10.5px; fill:#8b8b93 }
+    .box { fill:#141418; stroke:#2a2a30 }
+  </style>
+
+  <rect width="1440" height="700" fill="#09090b"/>
+
+  <!-- title -->
+  <g transform="translate(60 52)">
+    <g stroke="#fafafa" stroke-width="1.7" fill="none" stroke-linecap="round" transform="scale(1.1)">
+      <path d="M19.9 12.7A8 8 0 0 1 12.7 19.9"/><path d="M11.3 19.9A8 8 0 0 1 4.1 12.7"/>
+      <path d="M4.1 11.3A8 8 0 0 1 11.3 4.1"/><path d="M12.7 4.1A8 8 0 0 1 19.9 11.3"/>
+      <circle cx="12" cy="12" r="2.2" fill="#fafafa" stroke="none"/>
+    </g>
+    <text x="42" y="21" class="t h1">How one answer gets made</text>
+  </g>
+
+  <!-- ══════════ THE LINE ══════════ -->
+  <!-- user -->
+  <g transform="translate(60 168)">
+    <circle cx="42" cy="42" r="34" fill="#141418" stroke="#3f3f46"/>
+    <circle cx="42" cy="33" r="10" fill="none" stroke="#d4d4d8" stroke-width="2"/>
+    <path d="M26 60a16 16 0 0 1 32 0" fill="none" stroke="#d4d4d8" stroke-width="2"/>
+    <text x="42" y="104" text-anchor="middle" class="step" font-size="14">Founder</text>
+  </g>
+  <path d="M148 210 H196" stroke="#71717a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- app -->
+  <g transform="translate(204 150)">
+    <rect width="184" height="120" rx="10" class="box"/>
+    <text x="20" y="34" class="n">THE APP</text>
+    <text x="20" y="62" class="step">Venture Foundry</text>
+    <text x="20" y="86" class="sub">Ideation · Market</text>
+    <text x="20" y="105" class="sub">People · Capital</text>
+  </g>
+  <path d="M396 210 H444" stroke="#71717a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- 1 gather -->
+  <g transform="translate(452 150)">
+    <rect width="212" height="120" rx="10" class="box"/>
+    <text x="20" y="34" class="n">STEP 1</text>
+    <text x="20" y="62" class="step">Gather</text>
+    <text x="20" y="88" class="sub">search the live web</text>
+  </g>
+  <path d="M672 210 H720" stroke="#71717a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- 2 extract -->
+  <g transform="translate(728 150)">
+    <rect width="212" height="120" rx="10" class="box"/>
+    <text x="20" y="34" class="n">STEP 2</text>
+    <text x="20" y="62" class="step">Extract</text>
+    <text x="20" y="88" class="sub">results → facts</text>
+  </g>
+  <path d="M948 210 H996" stroke="#71717a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- 3 synthesize -->
+  <g transform="translate(1004 150)">
+    <rect width="212" height="120" rx="10" class="box"/>
+    <text x="20" y="34" class="n">STEP 3</text>
+    <text x="20" y="62" class="step">Synthesize</text>
+    <text x="20" y="88" class="sub">facts → the answer</text>
+  </g>
+  <path d="M1224 210 H1272" stroke="#71717a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- result -->
+  <g transform="translate(1280 158)">
+    <rect width="100" height="104" rx="10" fill="#0f1a12" stroke="#22c55e" stroke-opacity=".45"/>
+    <g stroke="#4ade80" stroke-width="2" stroke-linecap="round" opacity=".8">
+      <path d="M24 34h52"/><path d="M24 50h52"/><path d="M24 66h32"/>
+    </g>
+    <text x="50" y="94" text-anchor="middle" class="svcs" fill="#4ade80">CITED</text>
+    <text x="50" y="128" text-anchor="middle" class="step" font-size="14">Answer</text>
+  </g>
+
+  <!-- ══════════ SERVICE DROPS ══════════ -->
+  <!-- gather -> bright data -->
+  <path d="M558 270 V366" stroke="#3f3f46" stroke-width="1.5" marker-end="url(#ag)"/>
+  <g transform="translate(452 374)">
+    <rect width="212" height="112" rx="10" class="box"/>
+    <g transform="translate(20 20) scale(1.05)">
+      <path fill="#3D7FFC" d="M0 2.68C0 1.2 1.2 0 2.68 0h26.64C30.8 0 32 1.2 32 2.68v26.64C32 30.8 30.8 32 29.32 32H2.68A2.68 2.68 0 0 1 0 29.32z"/>
+      <path fill="#FFFFFF" d="M13.773 7.242c.31.592.155 1.09-.063 1.618-.342.872-.249 1.712.374 2.428.622.746 1.493.84 2.396.653 1.244-.28 1.96-1.463 1.773-2.77-.093-.622-.466-1.244-.124-1.929-.311.156-.311.156-.684.778-.343-.404-.654-.84-1.027-1.276-.312-.342-.623-.653-.436-1.213a1.33 1.33 0 0 0-.685.747c-.093.31-.155.622-.217.933-.063.311-.218.591-.53.778-.186-.342-.373-.591-.777-.747m-.736 19.172v-1.522l1.649-.215v-8.702l-1.52-.493v-1.694l4.154-.557.878-.087v11.512l1.627.236v1.522z"/>
+    </g>
+    <text x="66" y="42" class="svc">Bright Data</text>
+    <text x="20" y="76" class="svcs">SERP API — parsed Google</text>
+    <text x="20" y="96" class="svcs">the only search path</text>
+  </g>
+
+  <!-- extract -> aiml -->
+  <path d="M834 270 V366" stroke="#3f3f46" stroke-width="1.5" marker-end="url(#ag)"/>
+  <g transform="translate(728 374)">
+    <rect width="212" height="112" rx="10" class="box"/>
+    <g transform="translate(20 20)">
+      <rect width="34" height="34" rx="9" fill="#fafafa"/>
+      <text x="17" y="22" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#09090b">AI</text>
+    </g>
+    <text x="66" y="42" class="svc">AI/ML API</text>
+    <text x="20" y="76" class="svcs">gpt-4o-mini</text>
+    <text x="20" y="96" class="svcs">cheap, reads everything</text>
+  </g>
+
+  <!-- synthesize -> aiml -->
+  <path d="M1110 270 V366" stroke="#3f3f46" stroke-width="1.5" marker-end="url(#ag)"/>
+  <g transform="translate(1004 374)">
+    <rect width="212" height="112" rx="10" class="box"/>
+    <g transform="translate(20 20)">
+      <rect width="34" height="34" rx="9" fill="#fafafa"/>
+      <text x="17" y="22" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#09090b">AI</text>
+    </g>
+    <text x="66" y="42" class="svc">AI/ML API</text>
+    <text x="20" y="76" class="svcs">gpt-4o</text>
+    <text x="20" y="96" class="svcs">reasons over facts only</text>
+  </g>
+
+  <!-- app -> postgres -->
+  <path d="M296 270 V366" stroke="#3f3f46" stroke-width="1.5" marker-end="url(#ag)"/>
+  <g transform="translate(204 374)">
+    <rect width="184" height="112" rx="10" class="box"/>
+    <g transform="translate(20 20)">
+      <rect width="34" height="34" rx="9" fill="#fafafa"/>
+      <path d="M17 6 L25 20 h-8 z M17 28 L9 14 h8 z" fill="#09090b"/>
+    </g>
+    <text x="66" y="42" class="svc">Supabase</text>
+    <text x="20" y="76" class="svcs">Postgres + Edge</text>
+    <text x="20" y="96" class="svcs">Functions</text>
+  </g>
+
+  <!-- ══════════ TWO NOTES, NO EXTRA LINES ══════════ -->
+  <g transform="translate(60 546)">
+    <rect width="1320" height="1" fill="#27272a"/>
+  </g>
+
+  <g transform="translate(60 578)">
+    <circle cx="5" cy="-4" r="4" fill="#22c55e"/>
+    <text x="20" y="0" class="sub" fill="#d4d4d8">
+      <tspan font-weight="600" fill="#fafafa">The answer is saved to your startup file.</tspan>
+      The next module starts from it — Capital already knows your domain and market size.
+    </text>
+  </g>
+
+  <g transform="translate(60 614)">
+    <circle cx="5" cy="-4" r="4" fill="#3D7FFC"/>
+    <text x="20" y="0" class="sub" fill="#d4d4d8">
+      <tspan font-weight="600" fill="#fafafa">People runs step 1 twice.</tspan>
+      Bright Data's SERP finds LinkedIn profile URLs, then its Datasets API scrapes those exact URLs into person records.
+    </text>
+  </g>
+
+  <text x="1380" y="660" text-anchor="end" class="svcs">Built with native.builder</text>
+</svg>
