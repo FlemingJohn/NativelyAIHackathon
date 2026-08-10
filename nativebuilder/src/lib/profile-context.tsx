@@ -37,13 +37,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const create = async () => {
+    const created = await api.createProfile("demo-user");
+    localStorage.setItem(STORAGE_KEY, created.id);
+    setProfile(created);
+    setCounts(EMPTY);
+  };
+
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
       const id = localStorage.getItem(STORAGE_KEY);
+      if (!id) {
+        await create();
+        return;
+      }
 
-      if (id) {
+      try {
         // One request for both — /full returns the profile and everything saved
         // against it, so counting rows costs nothing extra.
         const full = await api.getProfileFull(id);
@@ -54,11 +65,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           matches: full.matches.length,
           leads: full.leads.length,
         });
-      } else {
-        const created = await api.createProfile("demo-user");
-        localStorage.setItem(STORAGE_KEY, created.id);
-        setProfile(created);
-        setCounts(EMPTY);
+      } catch (e) {
+        // The stored id can outlive the row it points at — the database was
+        // reset, the project was switched, or the row was deleted. Without
+        // this the app is permanently stuck on "profile not found" with no way
+        // out except clearing site data by hand.
+        const missing =
+          e instanceof Error && /404|profile not found/i.test(e.message);
+        if (!missing) throw e;
+
+        localStorage.removeItem(STORAGE_KEY);
+        await create();
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to load profile");
